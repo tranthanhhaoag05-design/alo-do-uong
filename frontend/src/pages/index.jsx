@@ -42,7 +42,7 @@ const HomePage = () => {
             .then(data => setStores(data || []))
             .catch(err => console.error("Lỗi tải danh sách quán:", err));
 
-        // Ép buộc chờ 2.5 giây để chạy xong hiệu ứng Logo rồi mới vào danh sách quán
+        // Ép buộc chờ 5 giây để chạy xong hiệu ứng Logo rồi mới vào danh sách quán
         const timer = setTimeout(() => { 
             setAppState(prevState => prevState === 'splash' ? 'stores' : prevState);
         }, 5000);
