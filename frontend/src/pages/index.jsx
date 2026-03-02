@@ -28,7 +28,7 @@ const HomePage = () => {
     const [paymentMethod, setPaymentMethod] = useState("Tiền mặt");
 
     // ==========================================
-    // 2. LOGIC TẢI DỮ LIỆU & "NHỚ MẶT" KHÁCH HÀNG
+    // 2. LOGIC TẢI DỮ LIỆU
     // ==========================================
     useEffect(() => {
         const savedName = localStorage.getItem('alo_customer_name');
@@ -36,16 +36,14 @@ const HomePage = () => {
         if (savedName) setCustomerName(savedName);
         if (savedPhone) setCustomerPhone(savedPhone);
 
-        // Gọi API lấy dữ liệu nhưng KHÔNG nhảy trang ngay lập tức
         fetch('https://alo-do-uong.onrender.com/api/stores/', { mode: 'cors' })
             .then(res => res.json())
             .then(data => setStores(data || []))
             .catch(err => console.error("Lỗi tải danh sách quán:", err));
 
-        // Ép buộc chờ 5 giây để chạy xong hiệu ứng Logo rồi mới vào danh sách quán
         const timer = setTimeout(() => { 
             setAppState(prevState => prevState === 'splash' ? 'stores' : prevState);
-        }, 5000);
+        }, 4000);
 
         return () => clearTimeout(timer);
     }, []);
@@ -145,7 +143,7 @@ const HomePage = () => {
         msg += `📍 Giao đến: ${fullAddress}\n`;
 
         if (gpsCoords) {
-            msg += `🗺️ Bản đồ: https://maps.google.com/?q=${gpsCoords.lat},${gpsCoords.lon}\n`;
+            msg += `🗺️ Bản đồ: http://googleusercontent.com/maps.google.com/search?q=${gpsCoords.lat},${gpsCoords.lon}\n`;
         }
 
         if (note || activeTags.length > 0) {
@@ -163,7 +161,7 @@ const HomePage = () => {
 
         let finalNote = activeTags.join(", ") + (note ? ", " + note : "") + ` | Trả: ${paymentMethod}`;
         if (gpsCoords) {
-            finalNote += ` | Map: https://maps.google.com/?q=${gpsCoords.lat},${gpsCoords.lon}`;
+            finalNote += ` | Map: http://googleusercontent.com/maps.google.com/search?q=${gpsCoords.lat},${gpsCoords.lon}`;
         }
 
         const orderData = {
@@ -241,7 +239,7 @@ const HomePage = () => {
     }
 
     return (
-        <div className="m-0 p-0" style={{ paddingBottom: '100px', backgroundColor: '#f8f9fa', minHeight: '100vh', fontFamily: "'Baloo 2', cursive" }}>
+        <div className="m-0 p-0" style={{ paddingBottom: '150px', backgroundColor: '#f8f9fa', minHeight: '100vh', fontFamily: "'Baloo 2', cursive" }}>
             <style>{webStyles}</style>
             
             <div className="bg-white shadow-sm p-2 d-flex align-items-center" style={{ position: 'sticky', top: 0, zIndex: 1000 }}>
@@ -256,7 +254,7 @@ const HomePage = () => {
                 <div className="d-inline-block px-3 py-1 rounded-pill position-relative" style={{ background: 'rgba(255, 0, 255, 0.05)', border: '1px solid rgba(255, 0, 255, 0.2)' }}><small style={{ color: '#FF00FF', fontWeight: 'bold', letterSpacing: '0.5px', fontSize: '0.85rem' }}>✨ Thơm ngon - Giao tận nơi ✨</small></div>
             </div>
 
-            <a href={`tel:${currentStore?.phone}`} className="d-flex align-items-center justify-content-center shadow-lg" style={{ position: 'fixed', bottom: cart.length > 0 ? '90px' : '30px', right: '20px', width: '55px', height: '55px', background: 'linear-gradient(45deg, #00E5FF, #FF00FF)', color: 'white', borderRadius: '50%', textDecoration: 'none', zIndex: 999, transition: 'bottom 0.3s ease-in-out' }}>
+            <a href={`tel:${currentStore?.phone}`} className="d-flex align-items-center justify-content-center shadow-lg" style={{ position: 'fixed', bottom: cart.length > 0 ? '110px' : '30px', right: '20px', width: '55px', height: '55px', background: 'linear-gradient(45deg, #00E5FF, #FF00FF)', color: 'white', borderRadius: '50%', textDecoration: 'none', zIndex: 999, transition: 'bottom 0.3s ease-in-out' }}>
                 <i className="bi bi-telephone-fill fs-3" style={{ animation: 'tada 1.5s infinite' }}></i>
             </a>
 
@@ -316,12 +314,15 @@ const HomePage = () => {
                         ))
                     )}
                 </div>
+                
+                {/* Lớp đệm vô hình cực to ở đáy để đẩy Menu lên khỏi Giỏ hàng */}
+                <div style={{ height: '100px', width: '100%' }}></div>
             </div>
 
             {/* Float Giỏ Hàng */}
             {cart.length > 0 && (
-                <div className="position-fixed w-100 d-flex justify-content-center" style={{ bottom: '20px', zIndex: 1040, left: 0 }} onClick={handleOpenCart}>
-                    <div className="bg-white shadow-lg rounded-pill p-2 d-flex align-items-center justify-content-between" style={{ width: '90%', maxWidth: '400px', border: '2px solid #00E5FF', cursor: 'pointer' }}>
+                <div className="position-fixed w-100 d-flex justify-content-center" style={{ bottom: '25px', zIndex: 1040, left: 0 }} onClick={handleOpenCart}>
+                    <div className="bg-white shadow-lg rounded-pill p-2 d-flex align-items-center justify-content-between" style={{ width: '92%', maxWidth: '400px', border: '2px solid #00E5FF', cursor: 'pointer' }}>
                         <div className="d-flex align-items-center">
                             <div className="text-white rounded-circle d-flex align-items-center justify-content-center me-2 fw-bold shadow-sm" style={{ width: '38px', height: '38px', backgroundColor: '#111', fontSize: '1.1rem' }}>{totalItems}</div>
                             <div>
