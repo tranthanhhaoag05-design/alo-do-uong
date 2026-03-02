@@ -242,9 +242,16 @@ const HomePage = () => {
         <div className="m-0 p-0" style={{ paddingBottom: '150px', backgroundColor: '#f8f9fa', minHeight: '100vh', fontFamily: "'Baloo 2', cursive" }}>
             <style>{webStyles}</style>
             
-            <div className="bg-white shadow-sm p-2 d-flex align-items-center" style={{ position: 'sticky', top: 0, zIndex: 1000 }}>
-                <button className="btn btn-light rounded-circle me-2" onClick={() => setAppState('stores')}><i className="bi bi-arrow-left fs-5"></i></button>
-                <span className="fw-bold fs-5 text-truncate" style={{ background: 'linear-gradient(45deg, #00E5FF, #FF00FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{currentStore?.name || "Cửa hàng"}</span>
+            {/* 🔥 THANH HEADER ĐÃ ĐƯỢC TÍCH HỢP NÚT GỌI ĐIỆN VÀO GÓC PHẢI 🔥 */}
+            <div className="bg-white shadow-sm p-2 d-flex align-items-center justify-content-between" style={{ position: 'sticky', top: 0, zIndex: 1000 }}>
+                <div className="d-flex align-items-center" style={{ maxWidth: '80%' }}>
+                    <button className="btn btn-light rounded-circle me-2 flex-shrink-0" onClick={() => setAppState('stores')}><i className="bi bi-arrow-left fs-5"></i></button>
+                    <span className="fw-bold fs-5 text-truncate" style={{ background: 'linear-gradient(45deg, #00E5FF, #FF00FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{currentStore?.name || "Cửa hàng"}</span>
+                </div>
+                {/* Nút Gọi Điện nằm gọn gàng trên Header */}
+                <a href={`tel:${currentStore?.phone}`} className="d-flex align-items-center justify-content-center rounded-circle shadow-sm" style={{ width: '40px', height: '40px', background: 'linear-gradient(45deg, #00E5FF, #FF00FF)', color: 'white', textDecoration: 'none', animation: 'tada 1.5s infinite', flexShrink: 0 }}>
+                    <i className="bi bi-telephone-fill fs-5"></i>
+                </a>
             </div>
 
             <div className="text-center py-4 mb-4 position-relative overflow-hidden shadow-sm" style={{ backgroundColor: '#ffffff', borderRadius: '0 0 35px 35px', borderBottom: '2px solid rgba(0, 229, 255, 0.3)' }}>
@@ -253,10 +260,6 @@ const HomePage = () => {
                 <h2 className="fw-bold mb-2 text-uppercase position-relative" style={{ background: 'linear-gradient(45deg, #00E5FF, #FF00FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', letterSpacing: '1px', fontSize: '1.8rem', lineHeight: '1.2' }}>{currentStore?.name || "Cửa hàng"}</h2>
                 <div className="d-inline-block px-3 py-1 rounded-pill position-relative" style={{ background: 'rgba(255, 0, 255, 0.05)', border: '1px solid rgba(255, 0, 255, 0.2)' }}><small style={{ color: '#FF00FF', fontWeight: 'bold', letterSpacing: '0.5px', fontSize: '0.85rem' }}>✨ Thơm ngon - Giao tận nơi ✨</small></div>
             </div>
-
-            <a href={`tel:${currentStore?.phone}`} className="d-flex align-items-center justify-content-center shadow-lg" style={{ position: 'fixed', bottom: cart.length > 0 ? '110px' : '30px', right: '20px', width: '55px', height: '55px', background: 'linear-gradient(45deg, #00E5FF, #FF00FF)', color: 'white', borderRadius: '50%', textDecoration: 'none', zIndex: 999, transition: 'bottom 0.3s ease-in-out' }}>
-                <i className="bi bi-telephone-fill fs-3" style={{ animation: 'tada 1.5s infinite' }}></i>
-            </a>
 
             <div className="container" style={{ maxWidth: '600px' }}>
                 <div className="card p-3 mb-4 border-0 shadow-sm rounded-4 bg-white">
