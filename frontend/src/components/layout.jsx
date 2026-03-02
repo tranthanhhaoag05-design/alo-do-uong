@@ -1,25 +1,14 @@
-import { getSystemInfo } from "zmp-sdk";
-import {
-  AnimationRoutes,
-  App,
-  Route,
-  SnackbarProvider,
-  ZMPRouter,
-} from "zmp-ui";
-
+import React from "react";
 import HomePage from "../pages/index";
 
 const Layout = () => {
+  // Đã gỡ bỏ toàn bộ "vỏ bọc" Zalo (ZMPRouter, App, SnackbarProvider)
+  // Chỉ render trực tiếp trang chủ để chạy được trên mọi trình duyệt web!
   return (
-    <App theme={getSystemInfo().zaloTheme}>
-      <SnackbarProvider>
-        <ZMPRouter>
-          <AnimationRoutes>
-            <Route path="/" element={<HomePage />}></Route>
-          </AnimationRoutes>
-        </ZMPRouter>
-      </SnackbarProvider>
-    </App>
+    <>
+      <HomePage />
+    </>
   );
 };
+
 export default Layout;
