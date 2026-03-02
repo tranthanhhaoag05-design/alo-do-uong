@@ -129,7 +129,7 @@ const HomePage = () => {
         let counts = {};
         cart.forEach(x => counts[x.name] = (counts[x.name] || 0) + 1);
 
-        let msg = `🛒 ĐƠN MỚI TỪ: ${currentStore.name.toUpperCase()}\n`;
+        let msg = `🛒 ĐƠN MỚI TỪ: ${currentStore?.name?.toUpperCase() || "QUÁN"}\n`;
         msg += `👤 Khách hàng: ${customerName} - ${customerPhone}\n`; // THÊM THÔNG TIN KHÁCH VÀO BILL
         msg += `----------------\n`;
         for (let name in counts) {
@@ -146,7 +146,7 @@ const HomePage = () => {
         msg += `📍 Giao đến: ${fullAddress}\n`;
 
         if (gpsCoords) {
-            msg += `🗺️ Bản đồ: https://maps.google.com/?q=$${gpsCoords.lat},${gpsCoords.lon}\n`;
+            msg += `🗺️ Bản đồ: https://www.google.com/maps?q=${gpsCoords.lat},${gpsCoords.lon}\n`;
         }
 
         if (note || activeTags.length > 0) {
@@ -164,11 +164,11 @@ const HomePage = () => {
 
         let finalNote = activeTags.join(", ") + (note ? ", " + note : "") + ` | Trả: ${paymentMethod}`;
         if (gpsCoords) {
-            finalNote += ` | Map: https://maps.google.com/?q=$${gpsCoords.lat},${gpsCoords.lon}`;
+            finalNote += ` | Map: https://www.google.com/maps?q=${gpsCoords.lat},${gpsCoords.lon}`;
         }
 
         const orderData = {
-            store: currentStore.id,
+            store: currentStore?.id,
             customer_name: customerName,
             customer_phone: customerPhone, // GỬI SĐT THẬT XUỐNG DATABASE
             address: (selectedKCN ? `[${selectedKCN}] ` : "") + address,
@@ -185,7 +185,7 @@ const HomePage = () => {
             }).catch(err => console.log("Lỗi lưu DB", err));
 
             alert("✅ Đã chép tin nhắn giỏ hàng!\n\nZalo sẽ mở ra, bạn chỉ cần DÁN (Ctrl+V) vào ô chat và gửi cho quán nhé.");
-            window.open(`https://zalo.me/${currentStore.phone}`, '_blank');
+            window.open(`https://zalo.me/${currentStore?.phone}`, '_blank');
             setCart([]);
             setShowModal(false);
         }).catch(() => {
@@ -247,17 +247,17 @@ const HomePage = () => {
             
             <div className="bg-white shadow-sm p-2 d-flex align-items-center" style={{ position: 'sticky', top: 0, zIndex: 1000 }}>
                 <button className="btn btn-light rounded-circle me-2" onClick={() => setAppState('stores')}><i className="bi bi-arrow-left fs-5"></i></button>
-                <span className="fw-bold fs-5 text-truncate" style={{ background: 'linear-gradient(45deg, #00E5FF, #FF00FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{currentStore.name}</span>
+                <span className="fw-bold fs-5 text-truncate" style={{ background: 'linear-gradient(45deg, #00E5FF, #FF00FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{currentStore?.name}</span>
             </div>
 
             <div className="text-center py-4 mb-4 position-relative overflow-hidden shadow-sm" style={{ backgroundColor: '#ffffff', borderRadius: '0 0 35px 35px', borderBottom: '2px solid rgba(0, 229, 255, 0.3)' }}>
                 <div style={{ position: 'absolute', top: '-20px', left: '-20px', width: '100px', height: '100px', background: 'rgba(0, 229, 255, 0.15)', borderRadius: '50%', filter: 'blur(25px)' }}></div>
                 <div style={{ position: 'absolute', bottom: '-20px', right: '-20px', width: '100px', height: '100px', background: 'rgba(255, 0, 255, 0.15)', borderRadius: '50%', filter: 'blur(25px)' }}></div>
-                <h2 className="fw-bold mb-2 text-uppercase position-relative" style={{ background: 'linear-gradient(45deg, #00E5FF, #FF00FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', letterSpacing: '1px', fontSize: '1.8rem', lineHeight: '1.2' }}>{currentStore.name}</h2>
+                <h2 className="fw-bold mb-2 text-uppercase position-relative" style={{ background: 'linear-gradient(45deg, #00E5FF, #FF00FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', letterSpacing: '1px', fontSize: '1.8rem', lineHeight: '1.2' }}>{currentStore?.name}</h2>
                 <div className="d-inline-block px-3 py-1 rounded-pill position-relative" style={{ background: 'rgba(255, 0, 255, 0.05)', border: '1px solid rgba(255, 0, 255, 0.2)' }}><small style={{ color: '#FF00FF', fontWeight: 'bold', letterSpacing: '0.5px', fontSize: '0.85rem' }}>✨ Thơm ngon - Giao tận nơi ✨</small></div>
             </div>
 
-            <a href={`tel:${currentStore.phone}`} className="d-flex align-items-center justify-content-center shadow-lg" style={{ position: 'fixed', bottom: cart.length > 0 ? '90px' : '30px', right: '20px', width: '55px', height: '55px', background: 'linear-gradient(45deg, #00E5FF, #FF00FF)', color: 'white', borderRadius: '50%', textDecoration: 'none', zIndex: 999, transition: 'bottom 0.3s ease-in-out' }}>
+            <a href={`tel:${currentStore?.phone}`} className="d-flex align-items-center justify-content-center shadow-lg" style={{ position: 'fixed', bottom: cart.length > 0 ? '90px' : '30px', right: '20px', width: '55px', height: '55px', background: 'linear-gradient(45deg, #00E5FF, #FF00FF)', color: 'white', borderRadius: '50%', textDecoration: 'none', zIndex: 999, transition: 'bottom 0.3s ease-in-out' }}>
                 <i className="bi bi-telephone-fill fs-3" style={{ animation: 'tada 1.5s infinite' }}></i>
             </a>
 
@@ -438,7 +438,7 @@ const HomePage = () => {
                                                 
                                                 <img 
                                                     src={
-                                                        currentStore.qr_image 
+                                                        currentStore?.qr_image 
                                                         ? (currentStore.qr_image.startsWith('http') 
                                                             ? currentStore.qr_image 
                                                             : `https://alo-do-uong.onrender.com${currentStore.qr_image.startsWith('/') ? '' : '/'}${currentStore.qr_image}`) 
