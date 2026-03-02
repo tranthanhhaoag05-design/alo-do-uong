@@ -38,7 +38,7 @@ const HomePage = () => {
         if (savedName) setCustomerName(savedName);
         if (savedPhone) setCustomerPhone(savedPhone);
 
-        fetch('http://localhost:8000/api/stores/', { mode: 'cors' })
+        fetch('https://alo-do-uong.onrender.com/api/stores/', { mode: 'cors' })
             .then(res => res.json())
             .then(data => setStores(data))
             .catch(err => console.error("Lỗi tải danh sách quán:", err));
@@ -49,7 +49,7 @@ const HomePage = () => {
 
     useEffect(() => {
         if (currentStore) {
-            fetch(`http://localhost:8000/api/menu/?store=${currentStore.id}`)
+            fetch(`https://alo-do-uong.onrender.com/api/menu/?store=${currentStore.id}`)
                 .then(response => response.json())
                 .then(data => {
                     const formattedData = data.map(item => ({
@@ -180,7 +180,7 @@ const HomePage = () => {
         };
 
         navigator.clipboard.writeText(finalMessage).then(() => {
-            fetch('http://localhost:8000/api/orders/', {
+            fetch('https://alo-do-uong.onrender.com/api/orders/', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(orderData)
             }).catch(err => console.log("Lỗi lưu DB", err));
 
@@ -441,7 +441,7 @@ const HomePage = () => {
                                                         currentStore.qr_image 
                                                         ? (currentStore.qr_image.startsWith('http') 
                                                             ? currentStore.qr_image 
-                                                            : `http://localhost:8000${currentStore.qr_image.startsWith('/') ? '' : '/'}${currentStore.qr_image}`) 
+                                                            : `https://alo-do-uong.onrender.com${currentStore.qr_image.startsWith('/') ? '' : '/'}${currentStore.qr_image}`) 
                                                         : `https://img.vietqr.io/image/970436-123456789-compact2.png?amount=${totalPrice}&addInfo=Thanh toan do uong`
                                                     } 
                                                     alt="QR Code" 
