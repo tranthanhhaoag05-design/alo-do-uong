@@ -36,15 +36,17 @@ const HomePage = () => {
         if (savedName) setCustomerName(savedName);
         if (savedPhone) setCustomerPhone(savedPhone);
 
+        // Gọi API lấy dữ liệu nhưng KHÔNG nhảy trang ngay lập tức
         fetch('https://alo-do-uong.onrender.com/api/stores/', { mode: 'cors' })
             .then(res => res.json())
-            .then(data => {
-                setStores(data);
-                if(data && data.length > 0) setAppState('stores');
-            })
+            .then(data => setStores(data || []))
             .catch(err => console.error("Lỗi tải danh sách quán:", err));
 
-        const timer = setTimeout(() => { setAppState('stores'); }, 5000);
+        // Ép buộc chờ 2.5 giây để chạy xong hiệu ứng Logo rồi mới vào danh sách quán
+        const timer = setTimeout(() => { 
+            setAppState(prevState => prevState === 'splash' ? 'stores' : prevState);
+        }, 2500);
+
         return () => clearTimeout(timer);
     }, []);
 
@@ -53,7 +55,7 @@ const HomePage = () => {
             fetch(`https://alo-do-uong.onrender.com/api/menu/?store=${currentStore.id}`)
                 .then(response => response.json())
                 .then(data => {
-                    const formattedData = data.map(item => ({
+                    const formattedData = (data || []).map(item => ({
                         id: item.id, name: item.name, price: item.price, category: item.category_name, img: item.image_url
                     }));
                     setMenuData(formattedData);
@@ -143,7 +145,7 @@ const HomePage = () => {
         msg += `📍 Giao đến: ${fullAddress}\n`;
 
         if (gpsCoords) {
-            msg += `🗺️ Bản đồ: https://www.google.com/maps/search/?api=1&query=${gpsCoords.lat},${gpsCoords.lon}\n`;
+            msg += `🗺️ Bản đồ: https://maps.google.com/?q=${gpsCoords.lat},${gpsCoords.lon}\n`;
         }
 
         if (note || activeTags.length > 0) {
@@ -161,7 +163,7 @@ const HomePage = () => {
 
         let finalNote = activeTags.join(", ") + (note ? ", " + note : "") + ` | Trả: ${paymentMethod}`;
         if (gpsCoords) {
-            finalNote += ` | Map: https://www.google.com/maps/search/?api=1&query=${gpsCoords.lat},${gpsCoords.lon}`;
+            finalNote += ` | Map: https://maps.google.com/?q=${gpsCoords.lat},${gpsCoords.lon}`;
         }
 
         const orderData = {
