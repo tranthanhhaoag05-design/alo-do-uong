@@ -386,89 +386,88 @@ const HomePage = () => {
                     <div className="modal-dialog modal-dialog-centered modal-dialog-scrollable">
                         <div className="modal-content border-0 shadow-lg rounded-4">
                             
-                            <div className="modal-header border-0 pb-0 d-flex justify-content-between align-items-center">
+                            <div className="modal-header border-0 pb-2 d-flex justify-content-between align-items-center">
                                 <div>
-                                    <h5 className="modal-title fw-bold mb-0" style={{ background: 'linear-gradient(45deg, #00E5FF, #FF00FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                                    <h4 className="modal-title fw-bold mb-0" style={{ background: 'linear-gradient(45deg, #00E5FF, #FF00FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                                         Giỏ hàng của bạn
-                                    </h5>
-                                    <small className="text-muted"><i className="bi bi-person-check-fill text-success"></i> {customerName} ({customerPhone})</small>
+                                    </h4>
+                                    <small className="text-muted fs-6"><i className="bi bi-person-check-fill text-success"></i> {customerName} ({customerPhone})</small>
                                 </div>
                                 <button type="button" className="btn-close shadow-none" onClick={() => setShowModal(false)}></button>
                             </div>
 
-                            <div className="modal-body pb-0">
-                                {cart.length === 0 ? <p className="text-center text-muted py-3">Giỏ hàng trống trơn...</p> : cart.map((item, index) => (
-                                    <div className="d-flex justify-content-between align-items-center border-bottom py-2" key={index}>
-                                        <div>
-                                            <h6 className="mb-0 fw-bold">{item.name}</h6>
-                                            <small className="fw-bold" style={{ color: '#FF00FF' }}>{formatMoney(item.price)}</small>
-                                        </div>
-                                        <button className="btn btn-light text-danger rounded-circle p-2 shadow-sm border-0" onClick={() => removeFromCart(index)}><i className="bi bi-trash"></i></button>
-                                    </div>
-                                ))}
-
-                                {cart.length > 0 && (
-                                    <div className="mt-3 p-3 rounded-3" style={{ backgroundColor: '#f8f9fa', border: '1px solid #eee' }}>
-                                        <h6 className="fw-bold mb-2 small text-muted">Phương thức thanh toán:</h6>
-                                        <div className="d-flex gap-3">
-                                            <label className="d-flex align-items-center cursor-pointer fw-bold">
-                                                <input type="radio" name="payment" value="Tiền mặt" checked={paymentMethod === "Tiền mặt"} onChange={(e) => setPaymentMethod(e.target.value)} className="me-2" /> 💵 Tiền mặt
-                                            </label>
-                                            <label className="d-flex align-items-center cursor-pointer fw-bold" style={{ color: paymentMethod === "Chuyển khoản" ? '#FF00FF' : '#333' }}>
-                                                <input type="radio" name="payment" value="Chuyển khoản" checked={paymentMethod === "Chuyển khoản"} onChange={(e) => setPaymentMethod(e.target.value)} className="me-2" /> 💳 Chuyển khoản
-                                            </label>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {cart.length > 0 && (
-                                    <div className="mt-3 p-3 rounded-3 d-flex" style={{ backgroundColor: '#fdf9ec', border: '1px dashed #ccc', borderLeft: '4px solid #00E5FF' }}>
-                                        <div style={{ flex: 1 }}>
-                                            <h6 className="fw-bold mb-2 small" style={{ color: '#00E5FF' }}>Tin nhắn sẽ gửi:</h6>
-                                            <pre style={{ whiteSpace: 'pre-wrap', margin: 0, fontSize: '12px', color: '#444', fontFamily: "monospace", lineHeight: '1.4' }}>
-                                                {generateOrderMessage()}
-                                            </pre>
-                                        </div>
-                                        
-                                        {/* HIỆN MÃ QR KHI CHỌN CHUYỂN KHOẢN (ĐÃ BỌC THÉP CHỐNG LỖI LINK) */}
-                                        {paymentMethod === "Chuyển khoản" && (
-                                            <div className="ms-3 d-flex flex-column align-items-center justify-content-center" style={{ width: '100px', borderLeft: '1px dashed #ddd', paddingLeft: '10px' }}>
-                                                <small className="fw-bold mb-1 text-center" style={{ fontSize: '10px', color: '#FF00FF' }}>Quét để thanh toán</small>
-                                                
-                                                <img 
-                                                    src={
-                                                        currentStore?.qr_image 
-                                                        ? (currentStore.qr_image.startsWith('http') 
-                                                            ? currentStore.qr_image 
-                                                            : `https://alo-do-uong.onrender.com${currentStore.qr_image.startsWith('/') ? '' : '/'}${currentStore.qr_image}`) 
-                                                        : `https://img.vietqr.io/image/970436-123456789-compact2.png?amount=${totalPrice}&addInfo=Thanh toan do uong`
-                                                    } 
-                                                    alt="QR Code" 
-                                                    onError={(e) => {
-                                                        console.log("Lỗi load ảnh QR, đường dẫn hiện tại là:", e.target.src);
-                                                        e.target.src = `https://img.vietqr.io/image/970436-123456789-compact2.png?amount=${totalPrice}&addInfo=Loi_Anh_Tu_Dong_Chuyen`;
-                                                    }}
-                                                    style={{ width: '80px', height: '80px', objectFit: 'contain', border: '1px solid #eee', borderRadius: '5px', backgroundColor: '#fff' }} 
-                                                />
+                            <div className="modal-body pt-0 pb-3" style={{ overflowX: 'hidden' }}>
+                                {cart.length === 0 ? <p className="text-center text-muted py-4 fs-5">Giỏ hàng trống trơn...</p> : (
+                                    <div className="bg-white rounded-3 p-2 mb-3 shadow-sm border">
+                                        {cart.map((item, index) => (
+                                            <div className="d-flex justify-content-between align-items-center border-bottom py-2" key={index}>
+                                                <div className="pe-2">
+                                                    <h6 className="mb-1 fw-bold fs-6">{item.name}</h6>
+                                                    <span className="fw-bold" style={{ color: '#FF00FF', fontSize: '0.95rem' }}>{formatMoney(item.price)}</span>
+                                                </div>
+                                                <button className="btn btn-light text-danger rounded-circle p-2 shadow-sm border-0 d-flex align-items-center justify-content-center" style={{ width: '35px', height: '35px' }} onClick={() => removeFromCart(index)}>
+                                                    <i className="bi bi-trash fs-5"></i>
+                                                </button>
                                             </div>
-                                        )}
+                                        ))}
+                                        <div className="mt-3 d-flex justify-content-between align-items-center px-1">
+                                            <span className="fw-bold fs-5">Tổng cộng:</span>
+                                            <span className="fw-bold fs-3" style={{ background: 'linear-gradient(45deg, #00E5FF, #FF00FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{formatMoney(totalPrice)}</span>
+                                        </div>
                                     </div>
                                 )}
 
                                 {cart.length > 0 && (
-                                    <div className="mt-3 pt-2 d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <span className="fw-bold fs-6">Tổng cộng:</span>
-                                            <small className="d-block text-muted">({totalItems} sản phẩm)</small>
+                                    <div className="p-3 rounded-4 shadow-sm mb-3" style={{ backgroundColor: '#f8f9fa', border: '1px solid #e0e0e0' }}>
+                                        <h6 className="fw-bold mb-3 fs-5 text-dark">💳 Phương thức thanh toán:</h6>
+                                        <div className="d-flex gap-4">
+                                            <label className="d-flex align-items-center cursor-pointer fw-bold fs-6">
+                                                <input type="radio" name="payment" value="Tiền mặt" checked={paymentMethod === "Tiền mặt"} onChange={(e) => setPaymentMethod(e.target.value)} className="me-2 form-check-input mt-0" style={{ transform: 'scale(1.2)' }} /> 💵 Tiền mặt
+                                            </label>
+                                            <label className="d-flex align-items-center cursor-pointer fw-bold fs-6" style={{ color: paymentMethod === "Chuyển khoản" ? '#FF00FF' : '#333' }}>
+                                                <input type="radio" name="payment" value="Chuyển khoản" checked={paymentMethod === "Chuyển khoản"} onChange={(e) => setPaymentMethod(e.target.value)} className="me-2 form-check-input mt-0" style={{ transform: 'scale(1.2)' }} /> 💳 Chuyển khoản
+                                            </label>
                                         </div>
-                                        <span className="fw-bold fs-4" style={{ background: 'linear-gradient(45deg, #00E5FF, #FF00FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{formatMoney(totalPrice)}</span>
+                                    </div>
+                                )}
+
+                                {/* QR CODE ĐƯỢC TÁCH RIÊNG VÀ LÀM CỰC TO */}
+                                {cart.length > 0 && paymentMethod === "Chuyển khoản" && (
+                                    <div className="p-3 rounded-4 shadow-sm mb-3 d-flex flex-column align-items-center justify-content-center" style={{ backgroundColor: '#fff', border: '2px dashed #FF00FF' }}>
+                                        <h6 className="fw-bold mb-2 text-center" style={{ color: '#FF00FF', fontSize: '1.1rem' }}>Quét mã để thanh toán</h6>
+                                        <img 
+                                            src={
+                                                currentStore?.qr_image 
+                                                ? (currentStore.qr_image.startsWith('http') 
+                                                    ? currentStore.qr_image 
+                                                    : `https://alo-do-uong.onrender.com${currentStore.qr_image.startsWith('/') ? '' : '/'}${currentStore.qr_image}`) 
+                                                : `https://img.vietqr.io/image/970436-123456789-compact2.png?amount=${totalPrice}&addInfo=Thanh toan do uong`
+                                            } 
+                                            alt="QR Code" 
+                                            onError={(e) => {
+                                                console.log("Lỗi load ảnh QR:", e.target.src);
+                                                e.target.src = `https://img.vietqr.io/image/970436-123456789-compact2.png?amount=${totalPrice}&addInfo=Loi_Anh_Tu_Dong_Chuyen`;
+                                            }}
+                                            style={{ width: '180px', height: '180px', objectFit: 'contain', border: '1px solid #eee', borderRadius: '10px', padding: '5px' }} 
+                                        />
+                                        <small className="text-muted mt-2 text-center">Nội dung CK: Tên + SĐT của bạn</small>
+                                    </div>
+                                )}
+
+                                {/* TIN NHẮN TÁCH XUỐNG DƯỚI, CHỐNG TRÀN VIỀN BẰNG word-break */}
+                                {cart.length > 0 && (
+                                    <div className="p-3 rounded-4 shadow-sm" style={{ backgroundColor: '#fdf9ec', border: '1px dashed #ccc', borderLeft: '4px solid #00E5FF' }}>
+                                        <h6 className="fw-bold mb-2" style={{ color: '#00E5FF', fontSize: '1rem' }}>Tin nhắn sẽ gửi qua Zalo:</h6>
+                                        <pre className="p-2 rounded-3 bg-white mb-0" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '14px', color: '#444', fontFamily: "monospace", lineHeight: '1.5', border: '1px solid #eee' }}>
+                                            {generateOrderMessage()}
+                                        </pre>
                                     </div>
                                 )}
                             </div>
 
-                            <div className="modal-footer border-0 pt-3">
-                                <button type="button" className="btn w-100 rounded-pill py-3 fw-bold text-truncate shadow-lg text-white d-flex justify-content-center align-items-center" onClick={handleCheckoutAndCopy} style={{ background: 'linear-gradient(45deg, #00E5FF, #FF00FF)', border: 'none', fontSize: '1.1rem' }}>
-                                    <i className="bi bi-clipboard-check fs-4 me-2"></i> Copy & Chuyển sang Zalo
+                            <div className="modal-footer border-0 pt-2 pb-3">
+                                <button type="button" className="btn w-100 rounded-pill py-3 fw-bold shadow-lg text-white d-flex justify-content-center align-items-center" onClick={handleCheckoutAndCopy} style={{ background: 'linear-gradient(45deg, #00E5FF, #FF00FF)', border: 'none', fontSize: '1.2rem' }}>
+                                    <i className="bi bi-send-fill fs-4 me-2"></i> Chốt đơn & Sang Zalo
                                 </button>
                             </div>
 
