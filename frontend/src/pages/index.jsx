@@ -143,7 +143,7 @@ const HomePage = () => {
         msg += `📍 Giao đến: ${fullAddress}\n`;
 
         if (gpsCoords) {
-            msg += `🗺️ Bản đồ: http://googleusercontent.com/maps.google.com/search?q=${gpsCoords.lat},${gpsCoords.lon}\n`;
+            msg += `🗺️ Bản đồ: https://maps.google.com/?q=${gpsCoords.lat},${gpsCoords.lon}\n`;
         }
 
         if (note || activeTags.length > 0) {
@@ -161,7 +161,7 @@ const HomePage = () => {
 
         let finalNote = activeTags.join(", ") + (note ? ", " + note : "") + ` | Trả: ${paymentMethod}`;
         if (gpsCoords) {
-            finalNote += ` | Map: http://googleusercontent.com/maps.google.com/search?q=${gpsCoords.lat},${gpsCoords.lon}`;
+            finalNote += ` | Map: https://maps.google.com/?q=${gpsCoords.lat},${gpsCoords.lon}`;
         }
 
         const orderData = {
