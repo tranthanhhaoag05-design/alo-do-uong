@@ -46,7 +46,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # THÊM DÒNG NÀY VÀO ĐÂY
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # ĐÃ BẬT CÔNG TẮC GIAO DIỆN
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware', 
     'django.middleware.common.CommonMiddleware',
@@ -121,16 +121,17 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles' # THÊM DÒNG NÀY VÀO
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 CORS_ALLOW_ALL_ORIGINS = True
 
 # Cho phép gửi kèm Cookie nếu cần
 CORS_ALLOW_CREDENTIALS = True
 
-# QUAN TRỌNG: Thêm link Vercel vào danh sách tin tưởng để đặt được hàng
+# QUAN TRỌNG: Thêm link Vercel và Render vào danh sách tin tưởng
 CSRF_TRUSTED_ORIGINS = [
     "https://alo-do-uong.vercel.app",
+    "https://alo-do-uong.onrender.com",  # FIX LỖI 403: ĐÃ CẤP QUYỀN CHO RENDER
     "https://6xnhqq55-8000.asse.devtunnels.ms", 
     "http://192.168.1.166:8000",
     "http://127.0.0.1:8000",
