@@ -153,42 +153,51 @@ const HomePage = () => {
     };
 
     const handleCheckoutAndCopy = () => {
-        if (!address && !selectedKCN) { alert("Vui lòng cho biết bạn đang ở đâu (GPS hoặc Chọn KCN) trước khi chốt đơn!"); return; }
+            if (!address && !selectedKCN) {
+                alert("Vui lòng cho biết bạn đang ở đâu (GPS hoặc Chọn KCN) trước khi chốt đơn!");
+                return;
+            }
 
-        const finalMessage = generateOrderMessage();
-        let counts = {};
-        cart.forEach(x => counts[x.name] = (counts[x.name] || 0) + 1);
+            // 🔥 LOGIC CHẶN 5 LY Ở ĐÂY 🔥
+            if (totalItems < 5) {
+                alert(`Dạ quán chỉ nhận giao hàng tận nơi cho đơn từ 5 ly trở lên.\n\nGiỏ hàng của bạn đang có ${totalItems} ly. Vui lòng chọn thêm ${5 - totalItems} ly nữa để chốt đơn nhé! 🧋`);
+                return; // Dừng lại, không cho chạy tiếp xuống dưới
+            }
 
-        let finalNote = activeTags.join(", ") + (note ? ", " + note : "") + ` | Trả: ${paymentMethod}`;
-        if (gpsCoords) {
-            finalNote += ` | Map: https://maps.google.com/?q=${gpsCoords.lat},${gpsCoords.lon}`;
-        }
+            const finalMessage = generateOrderMessage();
+            let counts = {};
+            cart.forEach(x => counts[x.name] = (counts[x.name] || 0) + 1);
 
-        const orderData = {
-            store: currentStore?.id,
-            customer_name: customerName,
-            customer_phone: customerPhone, 
-            address: (selectedKCN ? `[${selectedKCN}] ` : "") + address,
-            note: finalNote,
-            total_price: totalPrice,
-            items: Object.keys(counts).map(name => ({
-                product_name: name, quantity: counts[name], price: cart.find(i => i.name === name).price
-            }))
+            let finalNote = activeTags.join(", ") + (note ? ", " + note : "") + ` | Trả: ${paymentMethod}`;
+            if (gpsCoords) {
+                finalNote += ` | Map: https://maps.google.com/?q=${gpsCoords.lat},${gpsCoords.lon}`;
+            }
+
+            const orderData = {
+                store: currentStore?.id,
+                customer_name: customerName,
+                customer_phone: customerPhone,
+                address: (selectedKCN ? `[${selectedKCN}] ` : "") + address,
+                note: finalNote,
+                total_price: totalPrice,
+                items: Object.keys(counts).map(name => ({
+                    product_name: name, quantity: counts[name], price: cart.find(i => i.name === name).price
+                }))
+            };
+
+            navigator.clipboard.writeText(finalMessage).then(() => {
+                fetch('https://alo-do-uong.onrender.com/api/orders/', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(orderData)
+                }).catch(err => console.log("Lỗi lưu DB", err));
+
+                alert("✅ Đã chép tin nhắn giỏ hàng!\n\nZalo sẽ mở ra, bạn chỉ cần DÁN (Ctrl+V) vào ô chat và gửi cho quán nhé.");
+                window.open(`https://zalo.me/${currentStore?.phone}`, '_blank');
+                setCart([]);
+                setShowModal(false);
+            }).catch(() => {
+                alert("Trình duyệt không hỗ trợ copy tự động. Vui lòng copy tay nội dung bên trên.");
+            });
         };
-
-        navigator.clipboard.writeText(finalMessage).then(() => {
-            fetch('https://alo-do-uong.onrender.com/api/orders/', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(orderData)
-            }).catch(err => console.log("Lỗi lưu DB", err));
-
-            alert("✅ Đã chép tin nhắn giỏ hàng!\n\nZalo sẽ mở ra, bạn chỉ cần DÁN (Ctrl+V) vào ô chat và gửi cho quán nhé.");
-            window.open(`https://zalo.me/${currentStore?.phone}`, '_blank');
-            setCart([]);
-            setShowModal(false);
-        }).catch(() => {
-            alert("Trình duyệt không hỗ trợ copy tự động. Vui lòng copy tay nội dung bên trên.");
-        });
-    };
 
     // ==========================================
     // 4. CSS DÀNH RIÊNG CHO WEBSITE PC
@@ -469,8 +478,24 @@ const HomePage = () => {
                             </div>
 
                             <div className="modal-footer border-0 pt-2 pb-3">
-                                <button type="button" className="btn w-100 rounded-pill py-3 fw-bold shadow-lg text-white d-flex justify-content-center align-items-center" onClick={handleCheckoutAndCopy} style={{ background: 'linear-gradient(45deg, #00E5FF, #FF00FF)', border: 'none', fontSize: '1.2rem' }}>
-                                    <i className="bi bi-send-fill fs-4 me-2"></i> Chốt đơn & Sang Zalo
+                                {/* NÚT BẤM ĐÃ ĐƯỢC NÂNG CẤP LOGIC */}
+                                <button 
+                                    type="button" 
+                                    className="btn w-100 rounded-pill py-3 fw-bold shadow-lg text-white d-flex justify-content-center align-items-center" 
+                                    onClick={handleCheckoutAndCopy} 
+                                    style={{ 
+                                        background: totalItems >= 5 ? 'linear-gradient(45deg, #00E5FF, #FF00FF)' : '#b0b0b0', 
+                                        border: 'none', 
+                                        fontSize: '1.2rem',
+                                        cursor: totalItems >= 5 ? 'pointer' : 'not-allowed',
+                                        transition: 'all 0.3s ease'
+                                    }}
+                                >
+                                    {totalItems >= 5 ? (
+                                        <><i className="bi bi-send-fill fs-4 me-2"></i> Chốt đơn & Sang Zalo</>
+                                    ) : (
+                                        <><i className="bi bi-cart-x-fill fs-4 me-2"></i> Chọn thêm {5 - totalItems} ly để đặt</>
+                                    )}
                                 </button>
                             </div>
 
