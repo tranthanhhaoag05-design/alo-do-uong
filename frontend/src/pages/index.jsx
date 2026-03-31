@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-
+import React, { useState, useRef, useEffect } from 'react';
 const noteTagsList = ["Ít đá", "Đá riêng", "Ít đường", "Không đường"];
 
 const HomePage = () => {
@@ -26,7 +25,108 @@ const HomePage = () => {
     const [showModal, setShowModal] = useState(false);
     const [gpsCoords, setGpsCoords] = useState(null);
     const [paymentMethod, setPaymentMethod] = useState("Tiền mặt");
+    const DraggableCallButton = ({ phone }) => {
+    // Vị trí mặc định (Góc dưới bên phải màn hình)
+    const [position, setPosition] = useState({ x: 0, y: 0 });
+    const [isDragging, setIsDragging] = useState(false);
+    const [hasMoved, setHasMoved] = useState(false); 
+    const dragRef = useRef(null);
+    const offset = useRef({ x: 0, y: 0 });
 
+    // Khởi tạo vị trí khi component render lần đầu
+    useEffect(() => {
+        setPosition({ 
+            x: window.innerWidth - 70, 
+            y: window.innerHeight - 100 
+        });
+    }, []);
+
+    const handleStart = (e) => {
+        const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+        const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+
+        if (dragRef.current) {
+            const rect = dragRef.current.getBoundingClientRect();
+            offset.current = {
+                x: clientX - rect.left,
+                y: clientY - rect.top
+            };
+        }
+        setIsDragging(true);
+        setHasMoved(false); // Reset trạng thái di chuyển
+    };
+
+    const handleMove = (e) => {
+        if (!isDragging) return;
+        setHasMoved(true); // Đánh dấu là người dùng đang kéo chứ không phải click
+
+        const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+        const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+
+        let newX = clientX - offset.current.x;
+        let newY = clientY - offset.current.y;
+
+        // Giới hạn để nút không bị kéo lọt ra khỏi màn hình
+        const btnSize = 50; 
+        newX = Math.max(0, Math.min(newX, window.innerWidth - btnSize));
+        newY = Math.max(0, Math.min(newY, window.innerHeight - btnSize));
+
+        setPosition({ x: newX, y: newY });
+    };
+
+    const handleEnd = () => {
+        setIsDragging(false);
+    };
+
+    // Lắng nghe sự kiện di chuyển trên toàn window
+    useEffect(() => {
+        if (isDragging) {
+            window.addEventListener('mousemove', handleMove);
+            window.addEventListener('mouseup', handleEnd);
+            window.addEventListener('touchmove', handleMove, { passive: false });
+            window.addEventListener('touchend', handleEnd);
+        } else {
+            window.removeEventListener('mousemove', handleMove);
+            window.removeEventListener('mouseup', handleEnd);
+            window.removeEventListener('touchmove', handleMove);
+            window.removeEventListener('touchend', handleEnd);
+        }
+        return () => {
+            window.removeEventListener('mousemove', handleMove);
+            window.removeEventListener('mouseup', handleEnd);
+            window.removeEventListener('touchmove', handleMove);
+            window.removeEventListener('touchend', handleEnd);
+        };
+    }, [isDragging]);
+
+    return (
+        <a
+            ref={dragRef}
+            href={hasMoved ? "#" : `tel:${phone}`} 
+            onMouseDown={handleStart}
+            onTouchStart={handleStart}
+            onClick={(e) => { if (hasMoved) e.preventDefault(); }} // Chặn gọi điện nếu vừa kéo thả xong
+            className="d-flex align-items-center justify-content-center rounded-circle shadow-lg"
+            style={{
+                position: 'fixed',
+                left: `${position.x}px`,
+                top: `${position.y}px`,
+                width: '50px',
+                height: '50px',
+                background: 'linear-gradient(45deg, #00E5FF, #FF00FF)',
+                color: 'white',
+                textDecoration: 'none',
+                zIndex: 9999, // Đảm bảo luôn nằm trên cùng
+                cursor: isDragging ? 'grabbing' : 'grab',
+                touchAction: 'none', // Chặn cuộn màn hình khi đang kéo trên điện thoại
+                animation: isDragging ? 'none' : 'tada 1.5s infinite', // Dừng rung lắc khi đang kéo
+                userSelect: 'none'
+            }}
+        >
+            <i className="bi bi-telephone-fill fs-5"></i>
+        </a>
+    );
+};
     // ==========================================
     // 2. LOGIC TẢI DỮ LIỆU
     // ==========================================
@@ -251,16 +351,20 @@ const HomePage = () => {
         <div className="m-0 p-0" style={{ paddingBottom: '150px', backgroundColor: '#f8f9fa', minHeight: '100vh', fontFamily: "'Baloo 2', cursive" }}>
             <style>{webStyles}</style>
             
-            {/* 🔥 THANH HEADER ĐÃ ĐƯỢC TÍCH HỢP NÚT GỌI ĐIỆN VÀO GÓC PHẢI 🔥 */}
+            {/* Nút gọi điện có thể kéo thả */}
+            <DraggableCallButton phone={currentStore?.phone} />
+            
+            {/* 🔥 THANH HEADER (Đã gỡ nút gọi điện ra) 🔥 */}
             <div className="bg-white shadow-sm p-2 d-flex align-items-center justify-content-between" style={{ position: 'sticky', top: 0, zIndex: 1000 }}>
-                <div className="d-flex align-items-center" style={{ maxWidth: '80%' }}>
-                    <button className="btn btn-light rounded-circle me-2 flex-shrink-0" onClick={() => setAppState('stores')}><i className="bi bi-arrow-left fs-5"></i></button>
-                    <span className="fw-bold fs-5 text-truncate" style={{ background: 'linear-gradient(45deg, #00E5FF, #FF00FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{currentStore?.name || "Cửa hàng"}</span>
+                <div className="d-flex align-items-center" style={{ maxWidth: '100%' }}>
+                    <button className="btn btn-light rounded-circle me-2 flex-shrink-0" onClick={() => setAppState('stores')}>
+                        <i className="bi bi-arrow-left fs-5"></i>
+                    </button>
+                    <span className="fw-bold fs-5 text-truncate" style={{ background: 'linear-gradient(45deg, #00E5FF, #FF00FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                        {currentStore?.name || "Cửa hàng"}
+                    </span>
                 </div>
-                {/* Nút Gọi Điện nằm gọn gàng trên Header */}
-                <a href={`tel:${currentStore?.phone}`} className="d-flex align-items-center justify-content-center rounded-circle shadow-sm" style={{ width: '40px', height: '40px', background: 'linear-gradient(45deg, #00E5FF, #FF00FF)', color: 'white', textDecoration: 'none', animation: 'tada 1.5s infinite', flexShrink: 0 }}>
-                    <i className="bi bi-telephone-fill fs-5"></i>
-                </a>
+                {/* Thẻ <a> gọi điện cũ ở đây đã được xóa bỏ */}
             </div>
 
             <div className="text-center py-4 mb-4 position-relative overflow-hidden shadow-sm" style={{ backgroundColor: '#ffffff', borderRadius: '0 0 35px 35px', borderBottom: '2px solid rgba(0, 229, 255, 0.3)' }}>
