@@ -20,7 +20,6 @@ const HomePage = () => {
     const [address, setAddress] = useState('');
     const [selectedKCN, setSelectedKCN] = useState('');
     const [note, setNote] = useState('');
-    const [activeTags, setActiveTags] = useState([]);
     const [showTags, setShowTags] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [gpsCoords, setGpsCoords] = useState(null);
@@ -237,9 +236,7 @@ const HomePage = () => {
         msg += `💰 Tổng tiền: ${formatMoney(totalPrice)}\n`;
         msg += `💳 Thanh toán: ${paymentMethod}\n`;
         
-        let fullAddress = "";
-        if (selectedKCN) fullAddress += `[${selectedKCN}] `;
-        fullAddress += address || 'Khách chưa nhập địa chỉ chi tiết';
+        let fullAddress = address || 'Khách chưa nhập địa chỉ chi tiết';
         msg += `📍 Giao đến: ${fullAddress}\n`;
 
         if (gpsCoords) {
@@ -253,8 +250,8 @@ const HomePage = () => {
     };
 
     const handleCheckoutAndCopy = () => {
-            if (!address && !selectedKCN) {
-                alert("Vui lòng cho biết bạn đang ở đâu (GPS hoặc Chọn KCN) trước khi chốt đơn!");
+            if (!address) {
+                alert("Vui lòng cho biết bạn đang ở đâu trước khi chốt đơn!");
                 return;
             }
 
@@ -277,7 +274,7 @@ const HomePage = () => {
                 store: currentStore?.id,
                 customer_name: customerName,
                 customer_phone: customerPhone,
-                address: (selectedKCN ? `[${selectedKCN}] ` : "") + address,
+                address:address,
                 note: finalNote,
                 total_price: totalPrice,
                 items: Object.keys(counts).map(name => ({
@@ -307,6 +304,7 @@ const HomePage = () => {
         body, html { margin: 0; padding: 0; overflow-x: hidden; background-color: #f8f9fa; }
         .zaui-header, .zaui-status-bar { display: none !important; }
     `;
+    
 
     if (appState === 'splash') {
         return (
@@ -380,13 +378,7 @@ const HomePage = () => {
                         <input type="text" className="form-control shadow-none bg-light border-0" placeholder="📍 Địa chỉ chi tiết (VD: Cổng số 1...)" value={address} onChange={(e) => setAddress(e.target.value)} />
                         <button className="btn btn-outline-dark border-0 bg-light text-primary" onClick={getLocation} title="Lấy GPS hiện tại"><i className="bi bi-crosshair" style={{ color: '#00E5FF' }}></i></button>
                     </div>
-                    <select className="form-select shadow-none mb-2 border-0 bg-light" value={selectedKCN} onChange={(e) => setSelectedKCN(e.target.value)}>
-                        <option value="">-- Chọn Khu Công Nghiệp (Nếu có) --</option>
-                        <option value="KCN Đại Đăng">🏭 KCN Đại Đăng</option>
-                        <option value="KCN Sóng Thần 3">🏭 KCN Sóng Thần 3</option>
-                        <option value="KCN Kim Huy">🏭 KCN Kim Huy</option>
-                        <option value="Mang về">🛍️ Ghé lấy mang về</option>
-                    </select>
+                   
                     <div className="d-flex align-items-center gap-2">
                         <input type="text" className="form-control shadow-none border-0 bg-light" placeholder="Ghi chú (VD: Ít đường...)" value={note} onChange={(e) => setNote(e.target.value)} />
                         <button className="btn btn-light rounded-circle border-0" type="button" onClick={() => setShowTags(!showTags)} style={{ width: '40px', height: '40px', background: '#eee' }}><i className="bi bi-tags"></i></button>
