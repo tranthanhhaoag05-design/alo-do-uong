@@ -20,6 +20,7 @@ const HomePage = () => {
     const [address, setAddress] = useState('');
     const [selectedKCN, setSelectedKCN] = useState('');
     const [note, setNote] = useState('');
+    const [activeTags, setActiveTags] = useState([]);
     const [showTags, setShowTags] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [gpsCoords, setGpsCoords] = useState(null);
@@ -78,7 +79,7 @@ const HomePage = () => {
     };
 
     // Lắng nghe sự kiện di chuyển trên toàn window
-    useEffect(() => {
+   useEffect(() => {
         if (isDragging) {
             window.addEventListener('mousemove', handleMove);
             window.addEventListener('mouseup', handleEnd);
@@ -98,32 +99,34 @@ const HomePage = () => {
         };
     }, [isDragging]);
 
+    const handleDoubleClick = () => {
+        window.location.href = `tel:${phone}`;
+    };
+
     return (
-        <a
+        <div
             ref={dragRef}
-            href={hasMoved ? "#" : `tel:${phone}`} 
             onMouseDown={handleStart}
             onTouchStart={handleStart}
-            onClick={(e) => { if (hasMoved) e.preventDefault(); }} // Chặn gọi điện nếu vừa kéo thả xong
+            onDoubleClick={handleDoubleClick} // Click 2 cái để gọi
             className="d-flex align-items-center justify-content-center rounded-circle shadow-lg"
             style={{
                 position: 'fixed',
                 left: `${position.x}px`,
                 top: `${position.y}px`,
-                width: '50px',
-                height: '50px',
+                width: '55px',
+                height: '55px',
                 background: 'linear-gradient(45deg, #00E5FF, #FF00FF)',
                 color: 'white',
-                textDecoration: 'none',
-                zIndex: 9999, // Đảm bảo luôn nằm trên cùng
+                zIndex: 9999,
                 cursor: isDragging ? 'grabbing' : 'grab',
-                touchAction: 'none', // Chặn cuộn màn hình khi đang kéo trên điện thoại
-                animation: isDragging ? 'none' : 'tada 1.5s infinite', // Dừng rung lắc khi đang kéo
-                userSelect: 'none'
+                touchAction: 'none',
+                userSelect: 'none',
+                transition: isDragging ? 'none' : 'box-shadow 0.3s ease'
             }}
         >
-            <i className="bi bi-telephone-fill fs-5"></i>
-        </a>
+            <i className="bi bi-telephone-fill fs-4"></i>
+        </div>
     );
 };
     // ==========================================
