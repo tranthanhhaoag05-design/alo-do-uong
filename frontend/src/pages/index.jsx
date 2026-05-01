@@ -329,8 +329,10 @@ const globalStyle = `
 
   /* Scrollable content with bottom nav space */
   .page-content {
-    padding-bottom: calc(70px + var(--safe-bottom));
+    padding-bottom: calc(100px + var(--safe-bottom));
     min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
   }
 `;
 
@@ -692,7 +694,8 @@ function CartPage({ cart, setCart, setPage, setToast }) {
         style={{
           width: "100%", padding: "16px", fontSize: 16,
           opacity: totalQty < minOrder ? 0.5 : 1,
-          marginBottom: 12,
+          marginTop: "20px",
+          marginBottom: "100px",
         }}
         disabled={totalQty < minOrder}
         onClick={() => totalQty >= minOrder && setPage("checkout")}
@@ -855,7 +858,7 @@ function HistoryPage() {
   );
 
   return (
-    <div className="page-content page-enter" style={{ padding: "20px 16px 0" }}>
+    <div className="page-content page-enter" style={{ padding: "30px 1px 100px" }}>
       <div className="section-title" style={{ marginBottom: 16 }}>📜 Lịch sử đơn hàng</div>
 
       {orders.map((order, idx) => {
