@@ -1,3 +1,19 @@
-frontend/node_modules/
-**/__pycache__/
+# Environments
+venv/
+.env
+__pycache__/
 *.pyc
+
+# Database
+db.sqlite3
+
+# Node
+node_modules/
+dist/
+.DS_Store
+
+# Project specific trash
+admin-frontend-trash/
+frontend/admin-frontend/
+media/store_qrs/
+media/products/

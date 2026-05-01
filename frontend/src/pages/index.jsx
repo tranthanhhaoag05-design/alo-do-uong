@@ -9,29 +9,10 @@ const CATEGORIES = [
 
 ];
 
-const PRODUCTS = [
-  // Nhóm Trà sữa
-  { id: 1, cat: 1, name: "Trà Sữa truyền Thống", price: 25000, img: "/images/tstruyenthong.jpg", desc: "Trà Sữa Truyền Thống thơm ngon, béo ngậy" },
-  { id: 2, cat: 1, name: "Trà Sữa Thái Xanh", price: 30000, img: "/images/tsthaixanh.jpg", desc: "Trà Sữa Thái Xanh thơm ngon" },
-  { id: 3, cat: 1, name: "Trà Sữa Thái Đỏ", price: 30000, img: "/images/tsthaido.jpg", desc: "Trà Sữa Thái Đỏ béo ngậy" },
-
-  // Nhóm cafe
-  { id: 21, cat: 2, name: "Cafe Đen", price: 15000, img: "/images/cfden.jpg", desc: "Cafe Đen thơm ngon" },
-  { id: 22, cat: 2, name: "Cafe Sữa ", price: 18000, img: "/images/cfsuada.jpg", desc: "Cafe Sữa béo ngậy" },
-  { id: 23, cat: 2, name: "Bạc Xĩu", price: 20000, img: "/images/bacxiu.jpg", desc: "Bạc Xĩu thơm ngon" },
-  
-  // Nhóm sinh tố
-  { id: 31, cat: 3, name: "Sinh Tố Bơ", price: 35000, img: "/images/stbo.jpg", desc: "Sinh tố bơ sáp béo ngậy" },
-  { id: 32, cat: 3, name: "Sinh Tố Mãng Cầu", price: 35000, img: "/images/stmangcau.jpg", desc: "Sinh tố mãng cầu chua ngọt" },
-  
-  // Nhóm nước ép
-  { id: 41, cat: 4, name: "Nước Ép Cam", price: 20000, img: "/images/nuocepcam.jpg", desc: "Nước ép cam tươi ngon" },
-  { id: 42, cat: 4, name: "Nước Ép Táo", price: 25000, img: "/images/nuoceptao.jpg", desc: "Nước ép táo tươi ngon" },
-  { id: 43, cat: 4, name: "Nước Ép Dâu", price: 30000, img: "/images/nuocepdau.jpg", desc: "Nước ép dâu tươi ngon" }
-];
 
 const NOTE_SUGGESTIONS = ["ít đá", "không đá", "nhiều đá", "ít ngọt", "không ngọt", "thêm đường", "không topping", "thêm trân châu"];
 
+const MIN_ORDER = 5;
 const fmt = (n) => n?.toLocaleString("vi-VN") + "đ";
 
 // ─── CSS IN JS / GLOBAL STYLES ────────────────────────────────────────────────
@@ -343,7 +324,7 @@ function Toast({ msg }) {
 }
 
 // ─── SPLASH PAGE ──────────────────────────────────────────────────────────────
-function SplashPage() {
+function SplashPage({ storeName, tagline }) {
   return (
     <div style={{
       minHeight: "100dvh",
@@ -371,10 +352,10 @@ function SplashPage() {
           letterSpacing: "-1px", lineHeight: 1.1,
           textShadow: "0 2px 12px rgba(0,0,0,0.15)",
         }}>
-          Alo Đồ Uống
+          {storeName}
         </div>
         <div style={{ fontSize: 13, color: "rgba(255,255,255,0.8)", marginTop: 6, fontWeight: 500 }}>
-          Ngon · Nhanh · Tận nơi 🚀
+          {tagline || "Ngon · Nhanh · Tận nơi 🚀"}
         </div>
       </div>
 
@@ -387,21 +368,36 @@ function SplashPage() {
   );
 }
 
-// ─── HOME PAGE ────────────────────────────────────────────────────────────────
-function HomePage({ cart, setCart, setToast }) {
+function HomePage({ cart, setCart, setToast, setPage, storeName, storeData, isOpen }) {
   const [activeCat, setActiveCat] = useState(0);
   const [address, setAddress] = useState("");
   const [locLoading, setLocLoading] = useState(false);
+  const [products, setProducts] = useState([]);
 
-  const filtered = activeCat === 0 ? PRODUCTS : PRODUCTS.filter(p => p.cat === activeCat);
+  useEffect(() => {
+    fetch("http://localhost:8000/api/products/?active=true")
+      .then(r => r.json())
+      .then(data => setProducts(data))
+      .catch(e => console.error(e));
+  }, []);
+
+  const filtered = activeCat === 0 ? products : products.filter(p => p.category === activeCat);
 
   const addToCart = (product) => {
+    if (product.stock <= 0) return;
     setCart(prev => {
       const existing = prev.find(i => i.id === product.id);
-      if (existing) return prev.map(i => i.id === product.id ? { ...i, qty: i.qty + 1 } : i);
+      if (existing) {
+        if (existing.qty >= product.stock) {
+          setToast(`Kho chỉ còn ${product.stock} ly!`);
+          return prev;
+        }
+        return prev.map(i => i.id === product.id ? { ...i, qty: i.qty + 1 } : i);
+      }
       return [...prev, { ...product, qty: 1, note: "" }];
     });
     setToast(`Đã thêm ${product.name} 🎉`);
+    setPage("cart"); // Tự động chuyển sang trang giỏ hàng
   };
 
   const getLocation = () => {
@@ -427,8 +423,16 @@ function HomePage({ cart, setCart, setToast }) {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
           <div>
             <div style={{ fontSize: 13, color: "var(--muted)", fontWeight: 500 }}>Xin chào 👋</div>
-            <div style={{ fontSize: 20, fontWeight: 800, color: "var(--text)", letterSpacing: "-0.5px" }}>
-              Alo <span className="grad-text">Đồ Uống</span>
+            <div style={{ fontSize: 20, fontWeight: 800, color: "var(--text)", letterSpacing: "-0.5px", display: "flex", alignItems: "center", gap: 8 }}>
+              {storeName}
+              <span style={{
+                fontSize: 10, padding: "2px 8px", borderRadius: 20,
+                background: isOpen ? "#d4f5e9" : "#ffe0e0",
+                color: isOpen ? "#0a6e47" : "#b02020",
+                fontWeight: 800, textTransform: "uppercase"
+              }}>
+                {isOpen ? "Đang mở" : "Tạm nghỉ"}
+              </span>
             </div>
           </div>
           <div style={{
@@ -515,52 +519,56 @@ function HomePage({ cart, setCart, setToast }) {
       </div>
 
       {/* Products Grid */}
-      <div className="products-grid"> 
-    {filtered.map(p => {
-      const inCart = cart.find(i => i.id === p.id);
-      return (
-        <div key={p.id} className="product-card">
-          <div style={{
-            height: 140, // Tăng chiều cao ảnh lên một chút cho Laptop đẹp hơn
-            background: G_SOFT,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            overflow: "hidden", // Để ảnh không tràn khỏi card
-            position: "relative",
-          }}>
-            <img 
-              src={p.img} 
-              alt={p.name} 
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-              onError={(e) => e.target.src = 'https://via.placeholder.com/150?text=Drink'}
-            />
-            {inCart && (
+      <div className="products-grid">
+        {filtered.map(p => {
+          const inCart = cart.find(i => i.id === p.id);
+          return (
+            <div key={p.id} className="product-card">
               <div style={{
-                position: "absolute", top: 8, right: 8,
-                background: G, color: "white",
-                width: 24, height: 24, borderRadius: "50%",
-                fontSize: 12, fontWeight: 800,
+                height: 140, // Tăng chiều cao ảnh lên một chút cho Laptop đẹp hơn
+                background: G_SOFT,
                 display: "flex", alignItems: "center", justifyContent: "center",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.2)"
-              }}>{inCart.qty}</div>
-            )}
-          </div>
-          <div style={{ padding: "12px" }}>
-            <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text)", marginBottom: 4, lineHeight: 1.2 }}>{p.name}</div>
-            <div style={{ fontSize: 12, color: "var(--muted)", fontWeight: 500, marginBottom: 10, height: "32px", overflow: "hidden" }}>{p.desc}</div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div style={{ fontSize: 16, fontWeight: 800 }} className="grad-text">{fmt(p.price)}</div>
-              <button
-                className="btn-grad"
-                style={{ width: 32, height: 32, fontSize: 20, lineHeight: 1, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center" }}
-                onClick={() => addToCart(p)}
-              >+</button>
+                overflow: "hidden", // Để ảnh không tràn khỏi card
+                position: "relative",
+              }}>
+                <img
+                  src={p.image_url || "https://via.placeholder.com/150?text=Drink"}
+                  alt={p.name}
+                  style={{ width: "100%", height: "100%", objectFit: "cover", opacity: p.stock <= 0 ? 0.4 : 1 }}
+                  onError={(e) => e.target.src = 'https://via.placeholder.com/150?text=Drink'}
+                />
+                {p.stock <= 0 && (
+                  <div style={{ position: "absolute", background: "rgba(0,0,0,0.6)", color: "white", padding: "6px 14px", borderRadius: 20, fontSize: 13, fontWeight: 800 }}>HẾT HÀNG</div>
+                )}
+                {inCart && (
+                  <div style={{
+                    position: "absolute", top: 8, right: 8,
+                    background: G, color: "white",
+                    width: 24, height: 24, borderRadius: "50%",
+                    fontSize: 12, fontWeight: 800,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.2)"
+                  }}>{inCart.qty}</div>
+                )}
+              </div>
+              <div style={{ padding: "12px" }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text)", marginBottom: 4, lineHeight: 1.2 }}>{p.name}</div>
+                <div style={{ fontSize: 12, color: "var(--muted)", fontWeight: 500, marginBottom: 10, height: "16px", overflow: "hidden" }}>{p.category_name}</div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: p.stock <= 0 ? "var(--muted)" : "var(--accent)" }} className={p.stock > 0 ? "grad-text" : ""}>{fmt(p.price)}</div>
+                  <button
+                    className="btn-grad"
+                    style={{ width: 32, height: 32, fontSize: 20, lineHeight: 1, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", background: p.stock <= 0 ? "#e8ecf4" : G, color: p.stock <= 0 ? "#a0aabf" : "white", cursor: p.stock <= 0 ? "not-allowed" : "pointer" }}
+                    onClick={() => addToCart(p)}
+                    disabled={p.stock <= 0}
+                  >+</button>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      );
-    })}
-  </div>
-</div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -568,7 +576,6 @@ function HomePage({ cart, setCart, setToast }) {
 function CartPage({ cart, setCart, setPage, setToast }) {
   const totalQty = cart.reduce((s, i) => s + i.qty, 0);
   const totalPrice = cart.reduce((s, i) => s + i.qty * i.price, 0);
-  const minOrder = 5;
 
   const updateQty = (id, delta) => {
     setCart(prev => prev.map(i => i.id === id ? { ...i, qty: Math.max(0, i.qty + delta) } : i).filter(i => i.qty > 0));
@@ -588,7 +595,7 @@ function CartPage({ cart, setCart, setPage, setToast }) {
           .filter(part => part !== s)
           .join(", ");
         return { ...i, note: updatedNote };
-      } 
+      }
       return { ...i, note: cur ? cur + ", " + s : s };
     }));
   };
@@ -605,36 +612,36 @@ function CartPage({ cart, setCart, setPage, setToast }) {
     <div className="page-content page-enter" style={{ padding: "20px 16px 0" }}>
       <div className="section-title" style={{ marginBottom: 16 }}>🛒 Giỏ hàng <span style={{ fontSize: 14, color: "var(--muted)", fontWeight: 600 }}>({totalQty} ly)</span></div>
 
-      {totalQty < minOrder && (
+      {totalQty < MIN_ORDER && (
         <div className="warning-box" style={{ marginBottom: 14 }}>
-          ⚠️ Cần tối thiểu {minOrder} ly để đặt đơn. Còn thiếu {minOrder - totalQty} ly nữa!
+          ⚠️ Cần tối thiểu {MIN_ORDER} ly để đặt đơn. Còn thiếu {MIN_ORDER - totalQty} ly nữa!
         </div>
       )}
 
       {cart.map(item => (
         <div key={item.id} style={{
           background: "white", borderRadius: 20,
-          padding: 14, 
+          padding: 14,
           marginBottom: 12,
           boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
           border: "1px solid #f0f0f0"
         }}>
           <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
             <div style={{
-              width: 65, 
-              height: 65, 
+              width: 65,
+              height: 65,
               borderRadius: 16,
               background: G_SOFT,
               overflow: "hidden",
               display: "flex", alignItems: "center", justifyContent: "center",
               fontSize: 26, flexShrink: 0,
             }}>
-            <img 
-          src={item.img} 
-          alt={item.name} 
-          style={{ width: "100%", height: "100%", objectFit: "cover" }}
-          onError={(e) => e.target.src = 'https://via.placeholder.com/150?text=Drink'}/>
-        </div>
+              <img
+                src={item.image_url || "https://via.placeholder.com/150?text=Drink"}
+                alt={item.name}
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                onError={(e) => e.target.src = 'https://via.placeholder.com/150?text=Drink'} />
+            </div>
 
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text)" }}>{item.name}</div>
@@ -693,91 +700,171 @@ function CartPage({ cart, setCart, setPage, setToast }) {
         className="btn-grad"
         style={{
           width: "100%", padding: "16px", fontSize: 16,
-          opacity: totalQty < minOrder ? 0.5 : 1,
+          opacity: totalQty < MIN_ORDER ? 0.5 : 1,
           marginTop: "20px",
           marginBottom: "100px",
         }}
-        disabled={totalQty < minOrder}
-        onClick={() => totalQty >= minOrder && setPage("checkout")}
+        disabled={totalQty < MIN_ORDER}
+        onClick={() => totalQty >= MIN_ORDER && setPage("checkout")}
       >
-        {totalQty < minOrder ? `⚠️ Cần thêm ${minOrder - totalQty} ly nữa` : "✅ Tiến hành đặt hàng"}
+        {totalQty < MIN_ORDER ? `⚠️ Cần thêm ${MIN_ORDER - totalQty} ly nữa` : "✅ Tiến hành đặt hàng"}
       </button>
     </div>
   );
 }
 
 // ─── CHECKOUT PAGE ────────────────────────────────────────────────────────────
-function CheckoutPage({ cart, setCart, setPage, setToast }) {
-  const [name, setName] = useState(() => localStorage.getItem("alo_name") || "");
-  const [phone, setPhone] = useState(() => localStorage.getItem("alo_phone") || "");
-  const [address, setAddress] = useState(() => localStorage.getItem("alo_address") || "");
+function CheckoutPage({ cart, setCart, setPage, setToast, setOrders, storeData, isOpen }) {
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const [note, setNote] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [distance, setDistance] = useState(0);
+  const [shippingFee, setShippingFee] = useState(0);
   const [done, setDone] = useState(false);
+  const [orderCode, setOrderCode] = useState("");
 
-  const totalQty = cart.reduce((s, i) => s + i.qty, 0);
-  const totalPrice = cart.reduce((s, i) => s + i.qty * i.price, 0);
-
-  const buildOrderMessage = () => {
-    let msg = `🧋 ĐƠN HÀNG - ALO ĐỒ UỐNG\n`;
-    msg += `━━━━━━━━━━━━━━━━━━━━\n`;
-    msg += `👤 Khách: ${name}\n`;
-    msg += `📱 Zalo: ${phone}\n`;
-    msg += `━━━━━━━━━━━━━━━━━━━━\n`;
-    cart.forEach(i => {
-      msg += `${i.emoji} ${i.name} x${i.qty} = ${fmt(i.qty * i.price)}\n`;
-      if (i.note) msg += `   📝 ${i.note}\n`;
-    });
-    msg += `━━━━━━━━━━━━━━━━━━━━\n`;
-    msg += `🛒 Tổng: ${totalQty} ly\n`;
-    msg += `💰 Thành tiền: ${fmt(totalPrice)}\n`;
-    msg += `━━━━━━━━━━━━━━━━━━━━\n`;
-    msg += `Cảm ơn bạn đã ủng hộ! 🙏`;
-    return msg;
+  const calculateDistance = (userLat, userLng) => {
+    if (!storeData || !storeData.latitude) return 1;
+    const R = 6371;
+    const dLat = (userLat - storeData.latitude) * Math.PI / 180;
+    const dLon = (userLng - storeData.longitude) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(storeData.latitude * Math.PI / 180) * Math.cos(userLat * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
   };
 
-  const handleSubmit = () => {
-    if (!name.trim() || !phone.trim()) {
-      setToast("⚠️ Vui lòng điền đầy đủ thông tin!");
+  const getLocation = () => {
+    navigator?.geolocation?.getCurrentPosition(pos => {
+      const d = calculateDistance(pos.coords.latitude, pos.coords.longitude);
+      setDistance(d);
+      setShippingFee(d < 5 ? 0 : Math.round(d * 3000));
+      setAddress(`${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`);
+    });
+  };
+
+  const totalQty = cart.reduce((s, i) => s + i.qty, 0);
+  const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const finalTotal = total + shippingFee;
+
+  const handleSubmit = async () => {
+    if (!isOpen) {
+      setToast("⚠️ Quán hiện đang tạm nghỉ hoặc ngoài giờ làm việc. Vui lòng quay lại sau!");
+      return;
+    }
+    if (totalQty < MIN_ORDER) return setToast(`⚠️ Bạn cần đặt tối thiểu ${MIN_ORDER} ly!`);
+    if (!name.trim() || !phone.trim() || !address.trim()) {
+      setToast("⚠️ Vui lòng điền tên, SĐT và địa chỉ!");
       return;
     }
     localStorage.setItem("alo_name", name);
     localStorage.setItem("alo_phone", phone);
+    localStorage.setItem("alo_address", address);
 
-    const msg = buildOrderMessage();
-    navigator.clipboard?.writeText(msg).catch(() => {});
+    // Sync back to localStorage for other pages if needed
+    // (though Checkout is usually the last stop)
 
-    // Save order to history
-    const orders = JSON.parse(localStorage.getItem("alo_orders") || "[]");
-    orders.unshift({
-      id: Date.now(),
-      items: cart,
-      name, phone,
-      totalQty, totalPrice,
-      status: "Đang xử lý",
-      date: new Date().toLocaleString("vi-VN"),
-    });
-    localStorage.setItem("alo_orders", JSON.stringify(orders.slice(0, 20)));
-    setDone(true);
+
+    setLoading(true);
+
+    const payload = {
+      store: 1,
+      customer_name: name,
+      customer_phone: phone,
+      address: address,
+      note: "Đặt từ Zalo App",
+      total_price: finalTotal,
+      items: cart.map(item => ({
+        product_name: item.name,
+        quantity: item.qty,
+        price: item.price
+      }))
+    };
+
+    try {
+      // Thêm Timeout cho Fetch (10 giây)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+      const res = await fetch("http://localhost:8000/api/orders/create/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        data = null;
+      }
+
+      if (!res.ok) {
+        let errorMsg = "Có lỗi xảy ra!";
+        if (data) {
+          errorMsg = data.error || Object.values(data).flat()[0] || errorMsg;
+        } else {
+          errorMsg = "Lỗi máy chủ (500)";
+        }
+        setToast("⚠️ " + errorMsg);
+        setLoading(false);
+        return;
+      }
+
+      setOrderCode(data.order_code || "N/A");
+      setDone(true);
+
+      // Lưu vào lịch sử cục bộ
+      const localOrders = JSON.parse(localStorage.getItem("alo_orders") || "[]");
+      const newOrder = {
+        order_code: data.order_code,
+        items: cart,
+        totalPrice: finalTotal, totalQty,
+        status: data.status,
+        date: new Date(data.created_at || new Date()).toLocaleString('vi-VN')
+      };
+      const updatedOrders = [newOrder, ...localOrders].slice(0, 20);
+      localStorage.setItem("alo_orders", JSON.stringify(updatedOrders));
+      setOrders(updatedOrders);
+
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        setToast("❌ Hết thời gian: Máy chủ phản hồi quá chậm!");
+      } else {
+        setToast("❌ Lỗi: " + err.message);
+      }
+    }
+    setLoading(false);
   };
 
   if (done) return (
     <div className="page-content page-enter" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 32, textAlign: "center" }}>
-      <div style={{ fontSize: 80, marginBottom: 16, animation: "bounceIn 0.5s ease" }}>✅</div>
-      <div style={{ fontSize: 22, fontWeight: 800, color: "var(--text)", marginBottom: 8 }}>Đã copy tin nhắn!</div>
-      <div style={{ fontSize: 14, color: "var(--muted)", marginBottom: 28, lineHeight: 1.6 }}>
-        Nội dung đơn hàng đã được copy.<br />Mở Zalo quán và paste vào để gửi nhé!
+      <div style={{ fontSize: 80, marginBottom: 16, animation: "bounceIn 0.5s ease" }}>🎉</div>
+      <div style={{ fontSize: 22, fontWeight: 800, color: "var(--text)", marginBottom: 8 }}>Đặt hàng thành công!</div>
+      <div style={{ fontSize: 14, color: "var(--muted)", marginBottom: 16, lineHeight: 1.6 }}>
+        Cảm ơn bạn! Đơn hàng của bạn đã được gửi đến quán.
       </div>
-      <a
-        href="https://zalo.me/0901234567"
-        target="_blank"
-        rel="noreferrer"
+      <div style={{ background: "white", padding: "16px 32px", borderRadius: 16, border: "2px dashed var(--accent)", marginBottom: 28 }}>
+        <div style={{ fontSize: 12, color: "var(--muted)", fontWeight: 700, marginBottom: 4, textTransform: "uppercase" }}>Mã đơn của bạn</div>
+        <div style={{ fontSize: 32, fontWeight: 800, color: "var(--accent)", letterSpacing: "2px" }}>{orderCode}</div>
+      </div>
+      <button
         className="btn-grad"
-        style={{ padding: "14px 32px", fontSize: 16, textDecoration: "none", display: "inline-block", marginBottom: 14 }}
-      >📱 Mở Zalo Quán</a>
+        style={{ padding: "14px 32px", fontSize: 16, width: "100%", marginBottom: 14 }}
+        onClick={() => { setCart([]); setPage("history"); setDone(false); }}
+      >Theo dõi đơn hàng 📍</button>
       <button
         className="btn-outline"
         style={{ padding: "12px 28px", fontSize: 15, width: "100%" }}
         onClick={() => { setCart([]); setPage("home"); setDone(false); }}
-      >Đặt đơn mới 🔄</button>
+      >Về trang chủ 🏠</button>
     </div>
   );
 
@@ -792,8 +879,8 @@ function CheckoutPage({ cart, setCart, setPage, setToast }) {
         <div style={{ fontSize: 13, color: "var(--muted)", fontWeight: 600, marginBottom: 6, marginTop: 12 }}>📱 Số điện thoại Zalo</div>
         <input className="input-field" type="tel" placeholder="0901234567" value={phone} onChange={e => setPhone(e.target.value)} />
         <div style={{ fontSize: 13, color: "var(--muted)", fontWeight: 600, marginBottom: 6, marginTop: 12 }}>📍 Địa chỉ cụ thể</div>
-        <input className="input-field" placeholder="Số nhà, tên đường, khu phố..." value={address} onChange={e => setAddress(e.target.value)}/>
-        </div>
+        <input className="input-field" placeholder="Số nhà, tên đường, khu phố..." value={address} onChange={e => setAddress(e.target.value)} />
+      </div>
 
       {/* Order summary */}
       <div style={{ background: "white", borderRadius: 20, padding: 16, marginBottom: 14, boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
@@ -806,34 +893,31 @@ function CheckoutPage({ cart, setCart, setPage, setToast }) {
         ))}
         <div style={{ borderTop: "1.5px solid var(--border)", marginTop: 10, paddingTop: 10, display: "flex", justifyContent: "space-between" }}>
           <span style={{ fontWeight: 700, fontSize: 15 }}>Tổng cộng</span>
-          <span className="grad-text" style={{ fontWeight: 800, fontSize: 17 }}>{fmt(totalPrice)}</span>
+          <span className="grad-text" style={{ fontWeight: 800, fontSize: 17 }}>{fmt(finalTotal)}</span>
         </div>
       </div>
 
-      <button className="btn-grad" style={{ width: "100%", padding: "16px", fontSize: 16, marginBottom: 12 }} onClick={handleSubmit}>
-        📩 Chốt đơn &amp; Gửi Zalo
+      <button
+        className="btn-grad"
+        style={{
+          width: "100%", padding: "16px", fontSize: 16, marginBottom: 12,
+          opacity: (!isOpen || loading) ? 0.6 : 1,
+          background: !isOpen ? "#8892a4" : G
+        }}
+        onClick={handleSubmit}
+        disabled={loading || !isOpen}
+      >
+        {!isOpen ? "🚫 Quán tạm đóng cửa" : (loading ? "Đang xử lý..." : " Đặt hàng ngay")}
       </button>
     </div>
   );
 }
 
 // ─── lịch sử PAGE ─────────────────────────────────────────────────────────────
-function HistoryPage() {
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    setLoading(true);
-    // Try fetching from API, fallback to localStorage
-    fetch("/api/orders/")
-      .then(r => r.json())
-      .then(data => { setOrders(data?.results || data || []); setLoading(false); })
-      .catch(() => {
-        const local = JSON.parse(localStorage.getItem("alo_orders") || "[]");
-        setOrders(local);
-        setLoading(false);
-      });
-  }, []);
+function HistoryPage({ orders }) {
+  const [loading, setLoading] = useState(false);
+  // We remove the internal fetch because App handles the data now
+  // but we keep loading state for UI consistency if needed
 
   const statusColor = (s) => {
     if (s?.includes("hoàn") || s?.includes("xong")) return { bg: "#d4edda", color: "#155724" };
@@ -874,7 +958,7 @@ function HistoryPage() {
           <div key={id} className="history-card">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
               <div>
-                <div style={{ fontSize: 13, fontWeight: 800, color: "var(--text)" }}>Đơn #{String(id).slice(-6)}</div>
+                <div style={{ fontSize: 13, fontWeight: 800, color: "var(--text)" }}>Đơn #{order.order_code}</div>
                 <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 2 }}>{date}</div>
               </div>
               <span className="status-badge" style={{ background: sc.bg, color: sc.color }}>{status}</span>
@@ -906,15 +990,78 @@ export default function App() {
   const [page, setPage] = useState("splash");
   const [cart, setCart] = useState([]);
   const [toast, setToast] = useState("");
+  const [orders, setOrders] = useState([]);
+  const [storeData, setStoreData] = useState(null);
+
+  useEffect(() => {
+    fetch("http://localhost:8000/api/stores/1/")
+      .then(res => res.json())
+      .then(data => {
+        setStoreData(data);
+      })
+      .catch(err => console.error(err));
+  }, []);
+
+  const checkIsOpen = () => {
+    if (!storeData) return true;
+    if (!storeData.is_active) return false;
+    const now = new Date();
+    const timeStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+    return timeStr >= storeData.opening_time && timeStr <= storeData.closing_time;
+  };
+  const isOpen = checkIsOpen();
   const toastTimer = useRef(null);
+
+  // Load orders from localStorage on mount
+  useEffect(() => {
+    const local = JSON.parse(localStorage.getItem("alo_orders") || "[]");
+    setOrders(local);
+  }, []);
 
   // Auto-clear toast
   useEffect(() => {
     if (toast) {
       clearTimeout(toastTimer.current);
-      toastTimer.current = setTimeout(() => setToast(""), 2000);
+      toastTimer.current = setTimeout(() => setToast(""), 3000);
     }
   }, [toast]);
+
+  // Polling Real-time Status Sync
+  useEffect(() => {
+    const pollInterval = setInterval(() => {
+      const localOrders = JSON.parse(localStorage.getItem("alo_orders") || "[]");
+      let changed = false;
+
+      // Only track active orders
+      const checkPromises = localOrders.map(async (order) => {
+        if (!order.order_code || ["Hoàn thành", "Đã hủy"].includes(order.status)) return order;
+
+        try {
+          const res = await fetch(`http://localhost:8000/api/orders/track/${order.order_code}/`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.status && data.status !== order.status) {
+              setToast(`🔔 Đơn ${order.order_code} đã chuyển sang: ${data.status}`);
+              changed = true;
+              return { ...order, status: data.status };
+            }
+          }
+        } catch (e) {
+          console.error("Lỗi tracking:", e);
+        }
+        return order;
+      });
+
+      Promise.all(checkPromises).then(updatedOrders => {
+        if (changed) {
+          localStorage.setItem("alo_orders", JSON.stringify(updatedOrders));
+          setOrders(updatedOrders); // Update state to trigger re-render
+        }
+      });
+    }, 5000);
+
+    return () => clearInterval(pollInterval);
+  }, []);
 
   // Splash auto-navigate
   useEffect(() => {
@@ -939,12 +1086,12 @@ export default function App() {
       <div className="app-shell">
         <Toast msg={toast} />
 
-        {page === "splash" && <SplashPage />}
+        {page === "splash" && <SplashPage storeName={storeData?.name || "Alo Đồ Uống"} tagline={storeData?.description} />}
 
-        {page === "home" && <HomePage cart={cart} setCart={setCart} setToast={setToast} />}
+        {page === "home" && <HomePage cart={cart} setCart={setCart} setToast={setToast} setPage={setPage} storeName={storeData?.name || "Alo Đồ Uống"} storeData={storeData} isOpen={isOpen} />}
         {page === "cart" && <CartPage cart={cart} setCart={setCart} setPage={setPage} setToast={setToast} />}
-        {page === "checkout" && <CheckoutPage cart={cart} setCart={setCart} setPage={setPage} setToast={setToast} />}
-        {page === "history" && <HistoryPage />}
+        {page === "checkout" && <CheckoutPage cart={cart} setCart={setCart} setPage={setPage} setToast={setToast} setOrders={setOrders} storeData={storeData} isOpen={isOpen} />}
+        {page === "history" && <HistoryPage orders={orders} />}
 
         {page !== "splash" && (
           <nav className="bottom-nav">
