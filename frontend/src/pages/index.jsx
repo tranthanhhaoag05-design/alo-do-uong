@@ -718,6 +718,7 @@ function CheckoutPage({ cart, setCart, setPage, setToast, setOrders, storeData, 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
+  const [gps, setGps] = useState("");
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
   const [distance, setDistance] = useState(0);
@@ -742,7 +743,7 @@ function CheckoutPage({ cart, setCart, setPage, setToast, setOrders, storeData, 
       const d = calculateDistance(pos.coords.latitude, pos.coords.longitude);
       setDistance(d);
       setShippingFee(d < 5 ? 0 : Math.round(d * 3000));
-      setAddress(`${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`);
+      setGps(`${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`);
     });
   };
 
@@ -774,7 +775,7 @@ function CheckoutPage({ cart, setCart, setPage, setToast, setOrders, storeData, 
       store: 1,
       customer_name: name,
       customer_phone: phone,
-      address: address,
+      address: `${address} (GPS: ${gps})`,
       note: "Đặt từ Zalo App",
       total_price: finalTotal,
       items: cart.map(item => ({
@@ -846,7 +847,7 @@ function CheckoutPage({ cart, setCart, setPage, setToast, setOrders, storeData, 
 
   if (done) return (
     <div className="page-content page-enter" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 32, textAlign: "center" }}>
-      <div style={{ fontSize: 80, marginBottom: 16, animation: "bounceIn 0.5s ease" }}>🎉</div>
+      <div style={{ fontSize: 80, marginBottom: 16, animation: "bounceIn 0.5s ease" }}></div>
       <div style={{ fontSize: 22, fontWeight: 800, color: "var(--text)", marginBottom: 8 }}>Đặt hàng thành công!</div>
       <div style={{ fontSize: 14, color: "var(--muted)", marginBottom: 16, lineHeight: 1.6 }}>
         Cảm ơn bạn! Đơn hàng của bạn đã được gửi đến quán.
@@ -869,28 +870,60 @@ function CheckoutPage({ cart, setCart, setPage, setToast, setOrders, storeData, 
   );
 
   return (
-    <div className="page-content page-enter" style={{ padding: "20px 16px 0" }}>
-      <div className="section-title" style={{ marginBottom: 6 }}>📋 Thông tin đặt hàng</div>
+    <div className="page-content page-enter" style={{ padding: "20px 16px 100px" }}>
+      <div className="section-title" style={{ marginBottom: 6 }}>Thông tin đặt hàng</div>
       <div style={{ fontSize: 13, color: "var(--muted)", marginBottom: 20, fontWeight: 500 }}>Điền thông tin để hoàn tất đơn hàng</div>
 
       <div style={{ background: "white", borderRadius: 20, padding: 16, marginBottom: 14, boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
         <div style={{ fontSize: 13, color: "var(--muted)", fontWeight: 600, marginBottom: 6 }}>👤 Tên khách hàng</div>
         <input className="input-field" placeholder="Nguyễn Văn A..." value={name} onChange={e => setName(e.target.value)} />
-        <div style={{ fontSize: 13, color: "var(--muted)", fontWeight: 600, marginBottom: 6, marginTop: 12 }}>📱 Số điện thoại Zalo</div>
+        <div style={{ fontSize: 13, color: "var(--muted)", fontWeight: 600, marginBottom: 6, marginTop: 12 }}>📱 Số điện thoại</div>
         <input className="input-field" type="tel" placeholder="0901234567" value={phone} onChange={e => setPhone(e.target.value)} />
-        <div style={{ fontSize: 13, color: "var(--muted)", fontWeight: 600, marginBottom: 6, marginTop: 12 }}>📍 Địa chỉ cụ thể</div>
-        <input className="input-field" placeholder="Số nhà, tên đường, khu phố..." value={address} onChange={e => setAddress(e.target.value)} />
+        <div style={{ fontSize: 13, color: "var(--muted)", fontWeight: 600, marginBottom: 6, marginTop: 12 }}>📍 Vị trí GPS </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <input
+            className="input-field"
+            placeholder="Chưa có định vị..."
+            value={gps}
+            readOnly
+            style={{ flex: 1, background: "#f8fafc", color: "var(--accent)", fontWeight: 700 }}
+          />
+          <button
+            type="button"
+            onClick={getLocation}
+            className="btn-grad"
+            style={{ padding: "0 14px", borderRadius: 14, fontSize: 12, flexShrink: 0 }}
+          >
+            📍 Lấy GPS
+          </button>
+        </div>
+
+        <div style={{ fontSize: 13, color: "var(--muted)", fontWeight: 600, marginBottom: 6, marginTop: 12 }}>🏠 Địa chỉ nhận hàng</div>
+        <input
+          className="input-field"
+          placeholder="Số nhà, tên đường, phường/xã..."
+          value={address}
+          onChange={e => setAddress(e.target.value)}
+        />
       </div>
 
       {/* Order summary */}
       <div style={{ background: "white", borderRadius: 20, padding: 16, marginBottom: 14, boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
-        <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10 }}>📦 Tóm tắt đơn hàng</div>
+        <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10 }}>Tóm tắt đơn hàng</div>
         {cart.map(i => (
           <div key={i.id} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 6, color: "var(--text)" }}>
             <span>{i.emoji} {i.name} x{i.qty}</span>
             <span style={{ fontWeight: 700 }}>{fmt(i.qty * i.price)}</span>
           </div>
         ))}
+
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginTop: 10, color: "var(--muted)" }}>
+          <span>Phí giao hàng ({distance > 0 ? `${distance.toFixed(1)} km` : "Đang tính..."})</span>
+          <span style={{ fontWeight: 700, color: (shippingFee === 0 && distance > 0) ? "#00c896" : "var(--text)" }}>
+            {distance > 0 ? (shippingFee === 0 ? "Miễn phí" : fmt(shippingFee)) : "0đ"}
+          </span>
+        </div>
+
         <div style={{ borderTop: "1.5px solid var(--border)", marginTop: 10, paddingTop: 10, display: "flex", justifyContent: "space-between" }}>
           <span style={{ fontWeight: 700, fontSize: 15 }}>Tổng cộng</span>
           <span className="grad-text" style={{ fontWeight: 800, fontSize: 17 }}>{fmt(finalTotal)}</span>
@@ -1026,16 +1059,20 @@ export default function App() {
     }
   }, [toast]);
 
-  // Polling Real-time Status Sync
+  // Polling Real-time Status Sync (Orders & Store Status)
   useEffect(() => {
     const pollInterval = setInterval(() => {
+      // 1. Cập nhật trạng thái Quán (Mở/Đóng cửa)
+      fetch("http://localhost:8000/api/stores/1/")
+        .then(res => res.json())
+        .then(data => setStoreData(data))
+        .catch(err => console.error("Lỗi cập nhật trạng thái quán:", err));
+
+      // 2. Cập nhật trạng thái Đơn hàng
       const localOrders = JSON.parse(localStorage.getItem("alo_orders") || "[]");
       let changed = false;
-
-      // Only track active orders
       const checkPromises = localOrders.map(async (order) => {
         if (!order.order_code || ["Hoàn thành", "Đã hủy"].includes(order.status)) return order;
-
         try {
           const res = await fetch(`http://localhost:8000/api/orders/track/${order.order_code}/`);
           if (res.ok) {
@@ -1047,7 +1084,7 @@ export default function App() {
             }
           }
         } catch (e) {
-          console.error("Lỗi tracking:", e);
+          console.error("Lỗi tracking đơn:", e);
         }
         return order;
       });
@@ -1055,7 +1092,7 @@ export default function App() {
       Promise.all(checkPromises).then(updatedOrders => {
         if (changed) {
           localStorage.setItem("alo_orders", JSON.stringify(updatedOrders));
-          setOrders(updatedOrders); // Update state to trigger re-render
+          setOrders(updatedOrders);
         }
       });
     }, 5000);
