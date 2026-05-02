@@ -99,7 +99,7 @@ export default function RevenuePage() {
         <h3 style={{ margin: "0 0 20px", fontSize: 16, fontWeight: 800, color: "#0d1117" }}>Biểu đồ Lợi nhuận</h3>
         <div style={{ width: "100%", height: 300 }}>
           <ResponsiveContainer>
-            <AreaChart data={data.chart_data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+            <AreaChart data={data.chart_data} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
               <defs>
                 <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#00c896" stopOpacity={0.3} />
@@ -108,7 +108,7 @@ export default function RevenuePage() {
               </defs>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f2f8" />
               <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#8891a4" }} dy={10} />
-              <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#8891a4" }} tickFormatter={(val) => `${val / 1000000}M`} />
+              <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#8891a4" }} tickFormatter={(val) => val >= 1000 ? `${(val / 1000).toFixed(0)}K` : val} />
               <Tooltip 
                 contentStyle={{ borderRadius: 8, border: "none", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}
                 formatter={(value) => [`${value.toLocaleString()}₫`, "Lợi nhuận"]}
