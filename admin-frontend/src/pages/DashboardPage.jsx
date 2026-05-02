@@ -55,7 +55,23 @@ export default function DashboardPage() {
   }, []);
 
   if (loading) return <div style={{ padding: 40, textAlign: "center", color: "#8891a4" }}>Đang tải thông tin tổng quan...</div>;
-  if (!stats) return <div style={{ padding: 40, textAlign: "center", color: "#b02020" }}>Không thể lấy dữ liệu!</div>;
+  
+  // Kiểm tra an toàn dữ liệu
+  if (!stats || stats.error || !stats.metrics) {
+    return (
+      <div style={{ padding: 60, textAlign: "center" }}>
+        <div style={{ fontSize: 50, marginBottom: 20 }}>⚠️</div>
+        <h2 style={{ color: "#0d1117", marginBottom: 10 }}>Không thể hiển thị dữ liệu</h2>
+        <p style={{ color: "#8891a4" }}>{stats?.error || "Dữ liệu không đúng định dạng. Vui lòng thử lại sau."}</p>
+        <button 
+            onClick={() => window.location.reload()} 
+            style={{ marginTop: 20, padding: "10px 20px", background: "#00c896", color: "white", border: "none", borderRadius: 8, cursor: "pointer" }}
+        >
+            Tải lại trang
+        </button>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -69,6 +85,7 @@ export default function DashboardPage() {
         }}
       >
         {stats.metrics.map((m) => (
+
           <div
             key={m.label}
             style={{
