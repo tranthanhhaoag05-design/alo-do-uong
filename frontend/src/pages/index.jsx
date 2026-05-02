@@ -228,12 +228,14 @@ function CartPage({ cart, setCart, setPage }) {
 
         </div>
       ))}
-      <div style={{ position: "fixed", bottom: 75, left: 0, right: 0, width: "100%", padding: "16px 24px", background: "white", boxShadow: "0 -10px 30px rgba(0,0,0,0.05)", display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 90, borderTop: "1px solid #f0f3f8" }}>
-
-
-        <div><div style={{ fontSize: 13, color: "var(--muted)", fontWeight: 600 }}>Tổng thanh toán</div><div style={{ fontSize: 22, fontWeight: 800, color: "var(--accent)" }}>{fmt(total)}</div></div>
-        <button onClick={() => setPage("checkout")} className="btn-grad" style={{ padding: "16px 35px", fontSize: 16, fontWeight: 800 }}>ĐẶT HÀNG NGAY</button>
+      <div style={{ position: "fixed", bottom: 75, left: 0, right: 0, width: "100%", padding: "12px 24px", background: "white", boxShadow: "0 -10px 30px rgba(0,0,0,0.05)", display: "flex", justifyContent: "center", gap: 30, alignItems: "center", zIndex: 90, borderTop: "1px solid #f0f3f8" }}>
+        <div style={{ textAlign: "right" }}>
+          <div style={{ fontSize: 12, color: "#64748b", fontWeight: 600 }}>Tổng thanh toán</div>
+          <div style={{ fontSize: 20, fontWeight: 800, color: "#00c896" }}>{fmt(total)}</div>
+        </div>
+        <button onClick={() => setPage("checkout")} className="btn-grad" style={{ padding: "14px 30px", fontSize: 15, fontWeight: 800, borderRadius: 15 }}>ĐẶT HÀNG NGAY</button>
       </div>
+
     </div>
   );
 }
@@ -432,11 +434,12 @@ export default function App() {
           <span style={{ fontSize: 24 }}>🛒</span>
           <span style={{ fontSize: 11, fontWeight: 700, color: page === "cart" ? "#00c896" : "#8891a4" }}>Giỏ hàng</span>
           {cart.length > 0 && (
-            <span style={{ position: "absolute", top: -2, right: 10, background: "#ff4d4f", color: "#fff", fontSize: 10, width: 18, height: 18, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800 }}>
+            <span style={{ position: "absolute", top: -2, left: "55%", background: "#ff4d4f", color: "#fff", fontSize: 10, width: 18, height: 18, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, border: "2px solid white" }}>
               {cart.reduce((s, i) => s + i.qty, 0)}
             </span>
           )}
         </button>
+
 
         <button className={`nav-item ${page === "checkout" ? "active" : ""}`} onClick={() => setPage("checkout")} style={{ background: "none", border: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
           <span style={{ fontSize: 24 }}>📍</span>
