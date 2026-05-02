@@ -187,6 +187,22 @@ function CartPage({ cart, setCart, setPage }) {
             <div>
                 <div style={{ fontWeight: 700, fontSize: 17, color: "#1a1a2e" }}>{i.name}</div>
                 <div style={{ color: "var(--accent)", fontWeight: 800, fontSize: 16, marginTop: 4 }}>{fmt(i.price)}</div>
+                {/* Ghi chú sản phẩm */}
+                <input 
+                  type="text" 
+                  placeholder="Ghi chú (đá, đường...)" 
+                  value={i.note || ""}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setCart(prev => prev.map(item => item.id === i.id ? { ...item, note: val } : item));
+                  }}
+                  style={{ 
+                    width: "100%", padding: "6px 10px", marginTop: 8, fontSize: 12,
+                    border: "1px solid #f0f3f8", borderRadius: 8, outline: "none",
+                    background: "#f8fafc", color: "#64748b"
+                  }}
+                />
+
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <button onClick={() => updateQty(i.id, -1)} style={{ width: 30, height: 30, borderRadius: "50%", border: "2px solid #f0f3f8", background: "white", fontWeight: 800 }}>-</button>
