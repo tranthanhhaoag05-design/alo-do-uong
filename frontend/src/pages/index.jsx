@@ -2,9 +2,9 @@ import { useState, useEffect, useRef } from "react";
 
 const NOTE_SUGGESTIONS = ["ít đá", "không đá", "nhiều đá", "ít ngọt", "không ngọt", "thêm đường", "không topping", "thêm trân châu"];
 const MIN_ORDER = 1;
-const fmt = (n) => n?.toLocaleString("vi-VN") + "đ";
-
-const G = "linear-gradient(135deg, #00E5FF 0%, #2979FF 100%)";
+const fmt = (v) => new Intl.NumberFormat('vi-VN').format(v) + "₫";
+const G = "linear-gradient(135deg, #00c896 0%, #2979ff 100%)";
+const API_URL = "https://alo-do-uong.onrender.com/api";
 const G_SOFT = "linear-gradient(135deg, #e0f7fa 0%, #e3f0ff 100%)";
 
 const globalStyle = `
@@ -374,7 +374,7 @@ function CheckoutPage({ cart, storeData, setPage, setToast, setOrders, isOpen, c
     };
 
     try {
-      const res = await fetch("https://alo-do-uong.onrender.com/api/orders/create/", {
+      const res = await fetch(`${API_URL}/orders/create/`, {
         method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload)
       });
       const data = await res.json();
@@ -531,12 +531,16 @@ export default function App() {
     setIsSyncing(true);
     const updated = await Promise.all(list.map(async (o) => {
       try {
-        const res = await fetch(`https://alo-do-uong.onrender.com/api/orders/track/${o.order_code}/?_t=${Date.now()}`);
+        const res = await fetch(`${API_URL}/orders/track/${o.order_code}/?_t=${Date.now()}`);
         if (res.ok) {
           const data = await res.json();
           return { ...o, status: data.status };
+        } else if (res.status === 404) {
+           console.warn(`Đơn hàng ${o.order_code} không tồn tại trên máy chủ`);
         }
-      } catch (e) {}
+      } catch (e) {
+        console.error("Lỗi đồng bộ đơn:", o.order_code, e);
+      }
       return o;
     }));
     setOrders(updated);
