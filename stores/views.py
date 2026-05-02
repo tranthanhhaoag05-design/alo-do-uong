@@ -120,11 +120,24 @@ class OrderStatusUpdateAPI(generics.UpdateAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderStatusSerializer
 
-class OrderTrackAPI(generics.RetrieveAPIView):
+class OrderTrackAPI(APIView):
     permission_classes = [AllowAny]
-    serializer_class = OrderSerializer
-    lookup_field = 'order_code'
-    queryset = Order.objects.all()
+    def get(self, request, order_code):
+        # 1. Thử tìm theo order_code (chuỗi 6 số)
+        order = Order.objects.filter(order_code=order_code).first()
+        
+        # 2. Nếu không thấy, thử tìm theo ID (số nguyên)
+        if not order and order_code.isdigit():
+            order = Order.objects.filter(id=int(order_code)).first()
+            
+        if not order:
+            return Response({"error": "Không tìm thấy đơn hàng"}, status=404)
+        
+        return Response({
+            "status": order.status,
+            "order_code": order.order_code,
+            "id": order.id
+        })
 
 class CreateOrderAPI(APIView):
     permission_classes = [AllowAny]
