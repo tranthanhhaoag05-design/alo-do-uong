@@ -200,15 +200,17 @@ function HomePage({ cart, setCart, setToast, setPage, storeData, isOpen, onChang
 }
 
 // ─── CART PAGE ────────────────────────────────────────────────────────────────
-function CartPage({ cart, setCart, setPage }) {
+function CartPage({ cart, setCart, setPage, setToast }) {
+
   const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const updateQty = (id, delta) => setCart(p => p.map(i => {
     if (i.id === id) {
       const newQty = i.qty + delta;
       if (newQty > i.stock) {
-        handleToast(`Món này chỉ còn ${i.stock} suất!`, "error");
+        setToast(`⚠️ Món này chỉ còn ${i.stock} suất thôi bạn ơi!`);
         return i;
       }
+
       return { ...i, qty: Math.max(0, newQty) };
     }
     return i;
@@ -486,7 +488,8 @@ export default function App() {
       <Toast msg={toast} />
 
       {page === "home" && <HomePage cart={cart} setCart={setCart} setToast={handleToast} setPage={setPage} storeData={storeData} isOpen={isOpen()} onChangeStore={() => { localStorage.removeItem("selected_store_id"); setStoreData(null); }} />}
-      {page === "cart" && <CartPage cart={cart} setCart={setCart} setPage={setPage} />}
+      {page === "cart" && <CartPage cart={cart} setCart={setCart} setPage={setPage} setToast={setToast} />}
+
       {page === "checkout" && <CheckoutPage cart={cart} storeData={storeData} setPage={setPage} setToast={handleToast} setOrders={setOrders} isOpen={isOpen()} />}
       {page === "history" && <HistoryPage orders={orders} />}
 
