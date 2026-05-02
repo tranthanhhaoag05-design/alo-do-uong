@@ -183,49 +183,49 @@ function CartPage({ cart, setCart, setPage }) {
       {cart.map(i => (
         <div key={i.id} style={{ background: "white", padding: 16, borderRadius: 24, marginBottom: 15, display: "flex", gap: 16, boxShadow: "0 4px 15px rgba(0,0,0,0.04)", border: "1px solid #f0f3f8" }}>
           <img src={i.image_url} style={{ width: 85, height: 85, borderRadius: 18, objectFit: "cover" }} />
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-            <div>
-                <div style={{ fontWeight: 700, fontSize: 17, color: "#1a1a2e" }}>{i.name}</div>
-                <div style={{ color: "var(--accent)", fontWeight: 800, fontSize: 16, marginTop: 4 }}>{fmt(i.price)}</div>
-                {/* Ghi chú sản phẩm */}
-                <input 
-                  type="text" 
-                  placeholder="Ghi chú (đá, đường...)" 
-                  value={i.note || ""}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setCart(prev => prev.map(item => item.id === i.id ? { ...item, note: val } : item));
-                  }}
-                  style={{ 
-                    width: "100%", padding: "6px 10px", marginTop: 8, fontSize: 12,
-                    border: "1px solid #f0f3f8", borderRadius: 8, outline: "none",
-                    background: "#f8fafc", color: "#64748b"
-                  }}
-                />
-
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 15, marginTop: 10 }}>
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+            <div style={{ fontWeight: 700, fontSize: 17, color: "#1a1a2e" }}>{i.name}</div>
+            <div style={{ color: "var(--accent)", fontWeight: 800, fontSize: 14, marginTop: 4 }}>{fmt(i.price)}</div>
+            {/* Ghi chú sản phẩm */}
+            <input 
+              type="text" 
+              placeholder="Ghi chú..." 
+              value={i.note || ""}
+              onChange={(e) => {
+                const val = e.target.value;
+                setCart(prev => prev.map(item => item.id === i.id ? { ...item, note: val } : item));
+              }}
+              style={{ 
+                width: "100%", padding: "4px 8px", marginTop: 6, fontSize: 11,
+                border: "1px solid #f0f3f8", borderRadius: 6, outline: "none",
+                background: "#f8fafc", color: "#64748b"
+              }}
+            />
+          </div>
+          
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", justifyContent: "space-between", gap: 10 }}>
+            <div style={{ fontWeight: 800, fontSize: 17, color: "#1a1a2e" }}>{fmt(i.price * i.qty)}</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <button 
                 onClick={() => updateQty(i.id, -1)} 
                 style={{ 
-                  width: 32, height: 32, borderRadius: 10, border: "1px solid #e2e8f0", 
+                  width: 28, height: 28, borderRadius: 8, border: "1px solid #e2e8f0", 
                   background: "#f8fafc", color: "#1e293b", fontWeight: 800, cursor: "pointer",
                   display: "flex", alignItems: "center", justifyContent: "center"
                 }}
               >-</button>
-              <span style={{ fontWeight: 800, fontSize: 16, minWidth: 20, textAlign: "center" }}>{i.qty}</span>
+              <span style={{ fontWeight: 800, fontSize: 15, minWidth: 15, textAlign: "center" }}>{i.qty}</span>
               <button 
                 onClick={() => updateQty(i.id, 1)} 
                 style={{ 
-                  width: 32, height: 32, borderRadius: 10, border: "none", 
+                  width: 28, height: 28, borderRadius: 8, border: "none", 
                   background: "#00c896", color: "white", fontWeight: 800, cursor: "pointer",
                   display: "flex", alignItems: "center", justifyContent: "center"
                 }}
               >+</button>
             </div>
-
           </div>
-          <div style={{ fontWeight: 800, fontSize: 17, alignSelf: "center", color: "#1a1a2e" }}>{fmt(i.price * i.qty)}</div>
+
         </div>
       ))}
       <div style={{ position: "fixed", bottom: 75, left: 0, right: 0, width: "100%", padding: "16px 24px", background: "white", boxShadow: "0 -10px 30px rgba(0,0,0,0.05)", display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 90, borderTop: "1px solid #f0f3f8" }}>
