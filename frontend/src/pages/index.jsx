@@ -219,14 +219,24 @@ function CartPage({ cart, setCart, setPage, setToast }) {
   }).filter(i => i.qty > 0));
 
 
+  const activeCart = cart.filter(i => i.selected !== false);
+  const totalQty = activeCart.reduce((s, i) => s + i.qty, 0);
+  const total = activeCart.reduce((s, i) => s + i.price * i.qty, 0);
+
   if (cart.length === 0) return <div style={{ padding: 120, textAlign: "center" }}><div style={{ fontSize: 80 }}>🛒</div><div style={{ fontWeight: 800, fontSize: 22, marginTop: 15, color: "#1a1a2e" }}>Giỏ hàng đang trống</div><p style={{ color: "var(--muted)", marginTop: 8 }}>Mời bạn quay lại chọn món ngon nhé!</p><button onClick={() => setPage("home")} className="btn-grad" style={{ padding: "14px 28px", marginTop: 25, fontSize: 16 }}>Quay lại mua sắm</button></div>;
 
   return (
     <div style={{ padding: "24px 16px 140px" }}>
       <h2 style={{ marginBottom: 25, fontWeight: 800, fontSize: 24 }}>🛒 Giỏ hàng của bạn</h2>
       {cart.map(i => (
-        <div key={i.id} style={{ background: "white", padding: 16, borderRadius: 24, marginBottom: 15, display: "flex", gap: 16, boxShadow: "0 4px 15px rgba(0,0,0,0.04)", border: "1px solid #f0f3f8" }}>
-          <img src={i.image_url} style={{ width: 85, height: 85, borderRadius: 18, objectFit: "cover" }} />
+        <div key={i.id} style={{ background: "white", padding: 16, borderRadius: 24, marginBottom: 15, display: "flex", gap: 16, alignItems: "center", boxShadow: "0 4px 15px rgba(0,0,0,0.04)", border: "1px solid #f0f3f8", opacity: i.selected === false ? 0.5 : 1 }}>
+          <input 
+            type="checkbox" 
+            checked={i.selected !== false} 
+            onChange={(e) => setCart(prev => prev.map(item => item.id === i.id ? { ...item, selected: e.target.checked } : item))}
+            style={{ width: 22, height: 22, accentColor: "#00c896", cursor: "pointer", flexShrink: 0 }}
+          />
+          <img src={i.image_url} style={{ width: 80, height: 80, borderRadius: 18, objectFit: "cover" }} />
           <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
             <div style={{ fontWeight: 700, fontSize: 17, color: "#1a1a2e" }}>{i.name}</div>
             <div style={{ color: "var(--accent)", fontWeight: 800, fontSize: 14, marginTop: 4 }}>{fmt(i.price)}</div>
@@ -274,15 +284,15 @@ function CartPage({ cart, setCart, setPage, setToast }) {
       ))}
       <div style={{ position: "fixed", bottom: 85, left: 0, right: 0, width: "100%", padding: "10px 20px", background: "white", zIndex: 90, borderTop: "1px solid #f0f3f8", display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
 
-        {cart.reduce((s, i) => s + i.qty, 0) < 5 && (
+        {totalQty < 5 && (
           <div style={{ color: "#ef4444", fontSize: 13, fontWeight: 700 }}>
-            ⚠️ Bạn cần chọn thêm {5 - cart.reduce((s, i) => s + i.qty, 0)} món nữa để giao hàng!
+            ⚠️ Bạn cần chọn thêm {5 - totalQty} món nữa để giao hàng!
           </div>
         )}
 
         <button
           onClick={() => {
-            if (cart.reduce((s, i) => s + i.qty, 0) < 5) {
+            if (totalQty < 5) {
               alert("Bạn cần chọn tối thiểu 5 món để đặt hàng nhé!");
               return;
             }
@@ -294,11 +304,11 @@ function CartPage({ cart, setCart, setPage, setToast }) {
             display: "flex", alignItems: "center", justifyContent: "space-between",
             padding: "0 30px", fontSize: 16, fontWeight: 800, color: "white",
             boxShadow: "0 10px 25px rgba(0,200,150,0.3)", cursor: "pointer",
-            opacity: cart.reduce((s, i) => s + i.qty, 0) < 5 ? 0.6 : 1,
-            filter: cart.reduce((s, i) => s + i.qty, 0) < 5 ? "grayscale(1)" : "none"
+            opacity: totalQty < 5 ? 0.6 : 1,
+            filter: totalQty < 5 ? "grayscale(1)" : "none"
           }}
         >
-          <span>{cart.reduce((s, i) => s + i.qty, 0) < 5 ? "CHƯA ĐỦ 5 MÓN" : "ĐẶT HÀNG NGAY"}</span>
+          <span>{totalQty < 5 ? "CHƯA ĐỦ 5 MÓN" : "ĐẶT HÀNG NGAY"}</span>
           <span style={{ fontSize: 18 }}>{fmt(total)}</span>
         </button>
       </div>
@@ -310,7 +320,7 @@ function CartPage({ cart, setCart, setPage, setToast }) {
 }
 
 // ─── CHECKOUT PAGE ────────────────────────────────────────────────────────────
-function CheckoutPage({ cart, storeData, setPage, setToast, setOrders, isOpen }) {
+function CheckoutPage({ cart, storeData, setPage, setToast, setOrders, isOpen, clearCart }) {
   const [name, setName] = useState(localStorage.getItem("alo_name") || "");
   const [phone, setPhone] = useState(localStorage.getItem("alo_phone") || "");
   const [addr, setAddr] = useState(localStorage.getItem("alo_addr") || "");
@@ -373,6 +383,7 @@ function CheckoutPage({ cart, storeData, setPage, setToast, setOrders, isOpen })
         const newO = { order_code: data.order_code, status: "Chờ xử lý", date: new Date().toLocaleString(), totalPrice: finalTotal, items: cart };
         localStorage.setItem("alo_orders", JSON.stringify([newO, ...hist]));
         setOrders([newO, ...hist]);
+        clearCart();
         setPage("history");
         alert("🎉 Đặt hàng thành công! Mã đơn của bạn là: #" + data.order_code);
       } else {
@@ -529,7 +540,7 @@ export default function App() {
       {page === "cart" && <CartPage cart={cart} setCart={setCart} setPage={setPage} setToast={handleToast} />}
 
 
-      {page === "checkout" && <CheckoutPage cart={cart} storeData={storeData} setPage={setPage} setToast={handleToast} setOrders={setOrders} isOpen={isOpen()} />}
+      {page === "checkout" && <CheckoutPage cart={cart.filter(i => i.selected !== false)} storeData={storeData} setPage={setPage} setToast={handleToast} setOrders={setOrders} isOpen={isOpen()} clearCart={() => setCart(prev => prev.filter(i => i.selected === false))} />}
       {page === "history" && <HistoryPage orders={orders} />}
 
       <nav className="bottom-nav" style={{
