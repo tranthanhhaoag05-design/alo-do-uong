@@ -4,7 +4,7 @@ const NOTE_SUGGESTIONS = ["ít đá", "không đá", "nhiều đá", "ít ngọt
 const MIN_ORDER = 1;
 const fmt = (v) => new Intl.NumberFormat('vi-VN').format(v) + "₫";
 const G = "linear-gradient(135deg, #00c896 0%, #2979ff 100%)";
-const API_URL = "https://alo-do-uong.onrender.com/api";
+const API_URL = "https://alo-do-uong-xzcc.onrender.com/api";
 const G_SOFT = "linear-gradient(135deg, #e0f7fa 0%, #e3f0ff 100%)";
 
 const globalStyle = `
