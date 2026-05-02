@@ -16,7 +16,7 @@ from django.db.models import Sum, F
 class RegisterAdminAPI(APIView):
     permission_classes = [AllowAny]
     def post(self, request):
-        email = request.data.get('email')
+        email = request.data.get('email', '').lower().strip()
         password = request.data.get('password')
         phone = request.data.get('phone', '')
 
@@ -45,7 +45,7 @@ class RegisterAdminAPI(APIView):
 class LoginAdminAPI(APIView):
     permission_classes = [AllowAny]
     def post(self, request):
-        email = request.data.get('email')
+        email = request.data.get('email', '').lower().strip()
         password = request.data.get('password')
         user = authenticate(username=email, password=password)
         
@@ -58,6 +58,7 @@ class LoginAdminAPI(APIView):
                 "user": {"email": user.email}
             })
         return Response({"error": "Thông tin đăng nhập không chính xác"}, status=status.HTTP_400_BAD_REQUEST)
+
 
 # 1. API Cửa hàng
 class StoreListAPI(generics.ListAPIView):
