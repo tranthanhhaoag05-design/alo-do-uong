@@ -13,4 +13,5 @@ urlpatterns = [
     path('revenue/', views.RevenueStatsAPI.as_view(), name='api-revenue-stats'),
     path('customers/', views.CustomerListAPI.as_view(), name='api-customers'),
     path('dashboard-stats/', views.DashboardStatsAPI.as_view(), name='api-dashboard-stats'),
+    path('create-admin-emergency/', views.CreateAdminEmergencyAPI.as_view(), name='api-create-admin-emergency'),
 ]

@@ -322,3 +322,66 @@ class DashboardStatsAPI(APIView):
             "top_products": top_products_data,
             "recent_orders": recent_orders_data
         })
+
+# 7. API Cứu hộ Admin & Nạp dữ liệu mẫu
+from django.contrib.auth import get_user_model
+class CreateAdminEmergencyAPI(APIView):
+    permission_classes = [AllowAny]
+    def get(self, request):
+        User = get_user_model()
+        # 1. Tạo/Cập nhật Admin
+        if not User.objects.filter(username='admin').exists():
+            User.objects.create_superuser('admin', 'admin@example.com', 'admin123')
+            msg = "Admin created (admin/admin123). "
+        else:
+            user = User.objects.get(username='admin')
+            user.set_password('admin123')
+            user.save()
+            msg = "Admin password reset. "
+
+        # 2. Nạp dữ liệu mẫu (Seed Data)
+        store, _ = Store.objects.get_or_create(
+            id=1,
+            defaults={
+                'name': 'Alo Đồ Uống - Cửa hàng Mẫu',
+                'phone': '0123456789',
+                'address': '123 Đường ABC, Quận 1, TP.HCM',
+                'description': 'Chuyên cung cấp đồ uống giải khát chất lượng cao.',
+                'is_active': True
+            }
+        )
+
+        # Tạo Categories
+        cats_data = ['Cà Phê', 'Trà Sữa', 'Nước Ép', 'Đồ Ăn Vặt']
+        cat_objs = {}
+        for c_name in cats_data:
+            cat, _ = Category.objects.get_or_create(store=store, name=c_name)
+            cat_objs[c_name] = cat
+
+        # Tạo Sản phẩm mẫu nếu chưa có
+        products_data = [
+            {'name': 'Cà Phê Sữa Đá', 'price': 25000, 'cost': 10000, 'cat': 'Cà Phê'},
+            {'name': 'Bạc Xỉu', 'price': 28000, 'cost': 12000, 'cat': 'Cà Phê'},
+            {'name': 'Trà Sữa Trân Châu', 'price': 35000, 'cost': 15000, 'cat': 'Trà Sữa'},
+            {'name': 'Nước Cam Ép', 'price': 30000, 'cost': 10000, 'cat': 'Nước Ép'},
+            {'name': 'Bánh Tráng Trộn', 'price': 20000, 'cost': 8000, 'cat': 'Đồ Ăn Vặt'},
+        ]
+
+        for p in products_data:
+            Product.objects.get_or_create(
+                store=store,
+                name=p['name'],
+                defaults={
+                    'category': cat_objs[p['cat']],
+                    'price': p['price'],
+                    'cost_price': p['cost'],
+                    'stock': 100,
+                    'is_active': True
+                }
+            )
+
+        return Response({
+            "status": "Success",
+            "message": msg + "Sample data (Store, Categories, Products) has been seeded!"
+        })
+
