@@ -375,7 +375,7 @@ function HomePage({ cart, setCart, setToast, setPage, storeName, storeData, isOp
   const [products, setProducts] = useState([]);
 
   useEffect(() => {
-    fetch("http://localhost:8000/api/products/?active=true")
+    fetch("https://alo-do-uong.onrender.com/api/products/?active=true")
       .then(r => r.json())
       .then(data => setProducts(data))
       .catch(e => console.error(e));
@@ -790,7 +790,7 @@ function CheckoutPage({ cart, setCart, setPage, setToast, setOrders, storeData, 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-      const res = await fetch("http://localhost:8000/api/orders/create/", {
+      const res = await fetch("https://alo-do-uong.onrender.com/api/orders/create/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -1027,7 +1027,7 @@ export default function App() {
   const [storeData, setStoreData] = useState(null);
 
   useEffect(() => {
-    fetch("http://localhost:8000/api/stores/1/")
+    fetch("https://alo-do-uong.onrender.com/api/stores/1/")
       .then(res => res.json())
       .then(data => {
         setStoreData(data);
@@ -1063,7 +1063,7 @@ export default function App() {
   useEffect(() => {
     const pollInterval = setInterval(() => {
       // 1. Cập nhật trạng thái Quán (Mở/Đóng cửa)
-      fetch("http://localhost:8000/api/stores/1/")
+      fetch("https://alo-do-uong.onrender.com/api/stores/1/")
         .then(res => res.json())
         .then(data => setStoreData(data))
         .catch(err => console.error("Lỗi cập nhật trạng thái quán:", err));
@@ -1074,7 +1074,7 @@ export default function App() {
       const checkPromises = localOrders.map(async (order) => {
         if (!order.order_code || ["Hoàn thành", "Đã hủy"].includes(order.status)) return order;
         try {
-          const res = await fetch(`http://localhost:8000/api/orders/track/${order.order_code}/`);
+          const res = await fetch(`https://alo-do-uong.onrender.com/api/orders/track/${order.order_code}/`);
           if (res.ok) {
             const data = await res.json();
             if (data.status && data.status !== order.status) {
