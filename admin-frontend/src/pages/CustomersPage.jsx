@@ -5,7 +5,7 @@ export default function CustomersPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("http://localhost:8000/api/customers/")
+    fetch("https://alo-do-uong.onrender.com/api/customers/")
       .then(res => res.json())
       .then(data => {
         setCustomers(data);

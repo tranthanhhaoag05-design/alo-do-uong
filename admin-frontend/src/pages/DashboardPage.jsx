@@ -42,7 +42,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("http://localhost:8000/api/dashboard-stats/")
+    fetch("https://alo-do-uong.onrender.com/api/dashboard-stats/")
       .then(res => res.json())
       .then(data => {
         setStats(data);

@@ -18,12 +18,12 @@ export default function ProductFormPage() {
 
   // Load danh mục
   useEffect(() => {
-    fetch("http://localhost:8000/api/stores/")
+    fetch("https://alo-do-uong.onrender.com/api/stores/")
       .then(res => res.json())
       .then(data => {
         if (data.length > 0) {
           // Lấy categories của store đầu tiên (id=1)
-          fetch(`http://localhost:8000/api/products/?store=1`) // Giả định store id=1
+          fetch(`https://alo-do-uong.onrender.com/api/products/?store=1`) // Giả định store id=1
           // Thực ra nên có API lấy danh mục riêng, nhưng tạm thời dùng mock hoặc fetch từ Product
         }
       });
@@ -34,7 +34,7 @@ export default function ProductFormPage() {
   // Load dữ liệu khi vào trang sửa (Edit mode)
   useEffect(() => {
     if (id) {
-      fetch(`http://localhost:8000/api/products/${id}/`)
+      fetch(`https://alo-do-uong.onrender.com/api/products/${id}/`)
         .then(res => res.json())
         .then(product => {
           if (product) {
@@ -77,8 +77,8 @@ export default function ProductFormPage() {
 
     try {
       const url = id 
-        ? `http://localhost:8000/api/products/${id}/`
-        : `http://localhost:8000/api/products/`;
+        ? `https://alo-do-uong.onrender.com/api/products/${id}/`
+        : `https://alo-do-uong.onrender.com/api/products/`;
 
       const method = id ? "PUT" : "POST";
       

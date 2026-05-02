@@ -10,7 +10,7 @@ export default function ProductsPage() {
 
   const fetchProducts = async () => {
     try {
-      const res = await fetch("http://localhost:8000/api/products/");
+      const res = await fetch("https://alo-do-uong.onrender.com/api/products/");
       const data = await res.json();
       setProducts(data);
     } catch (error) {
@@ -27,7 +27,7 @@ export default function ProductsPage() {
   const handleDelete = async (id) => {
     if (!window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này không?")) return;
     try {
-      const res = await fetch(`http://localhost:8000/api/products/${id}/`, {
+      const res = await fetch(`https://alo-do-uong.onrender.com/api/products/${id}/`, {
         method: 'DELETE',
       });
       if (res.ok) {

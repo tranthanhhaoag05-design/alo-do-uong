@@ -23,7 +23,7 @@ export default function OrdersPage() {
 
   const fetchOrders = async () => {
     try {
-      const res = await fetch("http://localhost:8000/api/orders/");
+      const res = await fetch("https://alo-do-uong.onrender.com/api/orders/");
       const data = await res.json();
       setOrders(data);
     } catch (error) {
@@ -37,7 +37,7 @@ export default function OrdersPage() {
     
     // API call
     try {
-      await fetch(`http://localhost:8000/api/orders/${id}/status/`, {
+      await fetch(`https://alo-do-uong.onrender.com/api/orders/${id}/status/`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus })

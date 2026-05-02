@@ -167,7 +167,7 @@ export default function AdminLayout() {
   const [storeName, setStoreName] = useState("Alo Đồ Uống");
 
   useEffect(() => {
-    fetch("http://localhost:8000/api/stores/1/")
+    fetch("https://alo-do-uong.onrender.com/api/stores/1/")
       .then(res => res.json())
       .then(data => {
         if (data.name) setStoreName(data.name);

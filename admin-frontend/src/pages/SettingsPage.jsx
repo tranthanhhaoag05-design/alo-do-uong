@@ -16,7 +16,7 @@ export default function SettingsPage() {
   const [locLoading, setLocLoading] = useState(false);
 
   useEffect(() => {
-    fetch("http://localhost:8000/api/stores/1/")
+    fetch("https://alo-do-uong.onrender.com/api/stores/1/")
       .then(res => res.json())
       .then(data => {
         setName(data.name || "");
@@ -65,7 +65,7 @@ export default function SettingsPage() {
     formData.append("longitude", lng);
 
     try {
-      const res = await fetch("http://localhost:8000/api/stores/1/", {
+      const res = await fetch("https://alo-do-uong.onrender.com/api/stores/1/", {
         method: "PUT",
         body: formData,
       });

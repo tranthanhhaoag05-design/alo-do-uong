@@ -18,7 +18,7 @@ export default function RevenuePage() {
 
   const fetchData = async () => {
     setLoading(true);
-    let url = `http://localhost:8000/api/revenue/?time_range=${timeRange}`;
+    let url = `https://alo-do-uong.onrender.com/api/revenue/?time_range=${timeRange}`;
     if (timeRange === "custom" && startDate && endDate) {
       url += `&start_date=${startDate}&end_date=${endDate}`;
     }
