@@ -35,7 +35,7 @@ export default function CategoriesPage() {
     e.preventDefault();
     if (!newName) return;
     const storeId = localStorage.getItem("store_id");
-    
+
     try {
       const res = await fetch(BASE_URL, {
         method: "POST",
@@ -85,16 +85,16 @@ export default function CategoriesPage() {
   return (
     <div style={{ maxWidth: 700, margin: "0 auto", padding: "20px" }}>
       <div style={{ marginBottom: 30 }}>
-        <h2 style={{ fontSize: 24, fontWeight: 800, color: "#0d1117" }}>📂 Quản lý Danh Mục</h2>
+        <h2 style={{ fontSize: 24, fontWeight: 800, color: "#0d1117" }}>Quản lý Danh Mục</h2>
         <p style={{ color: "#8891a4", fontSize: 14 }}>Tạo các nhóm sản phẩm (ví dụ: Cà phê, Trà trái cây...) để khách dễ chọn món.</p>
       </div>
-      
+
       {/* Form thêm mới */}
       <div style={{ background: "#fff", padding: 24, borderRadius: 16, boxShadow: "0 4px 20px rgba(0,0,0,0.05)", marginBottom: 25, border: "1px solid #e8ecf2" }}>
         <form onSubmit={handleAdd} style={{ display: "flex", gap: 12 }}>
-          <input 
-            type="text" 
-            value={newName} 
+          <input
+            type="text"
+            value={newName}
             onChange={e => setNewName(e.target.value)}
             placeholder="Nhập tên danh mục mới... (VD: Sinh Tố)"
             style={{ flex: 1, padding: "14px 18px", borderRadius: 12, border: "2px solid #f0f2f8", outline: "none", fontSize: 15, transition: "border-color 0.2s" }}
@@ -122,8 +122,8 @@ export default function CategoriesPage() {
                 <tr key={c.id} style={{ borderTop: "1px solid #f0f2f8", background: i % 2 === 0 ? "#fff" : "#fcfdff" }}>
                   <td style={{ padding: "18px 24px" }}>
                     {editingId === c.id ? (
-                      <input 
-                        value={editName} 
+                      <input
+                        value={editName}
                         onChange={e => setEditName(e.target.value)}
                         autoFocus
                         style={{ padding: "8px 12px", borderRadius: 8, border: "2px solid #2563eb", outline: "none", width: "100%" }}
@@ -152,7 +152,7 @@ export default function CategoriesPage() {
         )}
         {categories.length === 0 && !loading && (
           <div style={{ padding: 60, textAlign: "center" }}>
-            <div style={{ fontSize: 50, marginBottom: 15 }}>📂</div>
+            <div style={{ fontSize: 50, marginBottom: 15 }}></div>
             <div style={{ color: "#8891a4", fontWeight: 600 }}>Chưa có danh mục nào. Hãy thêm danh mục đầu tiên nhé!</div>
           </div>
         )}
