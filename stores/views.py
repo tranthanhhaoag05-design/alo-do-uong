@@ -70,7 +70,7 @@ class StoreDetailAPI(generics.RetrieveUpdateAPIView):
     serializer_class = StoreSerializer
 
 # 1.1 API Danh mục
-class CategoryListAPI(generics.ListAPIView):
+class CategoryListAPI(generics.ListCreateAPIView):
     permission_classes = [AllowAny]
     serializer_class = CategorySerializer
     def get_queryset(self):
@@ -78,6 +78,12 @@ class CategoryListAPI(generics.ListAPIView):
         if store_id:
             return Category.objects.filter(store_id=store_id)
         return Category.objects.none()
+
+class CategoryDetailAPI(generics.RetrieveDestroyAPIView):
+    permission_classes = [AllowAny]
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+
 
 # 2. API Sản phẩm
 class ProductListCreateAPI(generics.ListCreateAPIView):

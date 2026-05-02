@@ -5,7 +5,9 @@ const NAV_ITEMS = [
   { id: "/", label: "Tổng quan", icon: "⬛" },
   { id: "/orders", label: "Đơn hàng", icon: "📋" },
   { id: "/products", label: "Sản phẩm", icon: "🧃" },
+  { id: "/categories", label: "Danh mục", icon: "📂" },
   { id: "/customers", label: "Khách hàng", icon: "👤" },
+
   { id: "/revenue", label: "Doanh thu", icon: "📈" },
 
   { id: "/settings", label: "Cài đặt", icon: "⚙️" },

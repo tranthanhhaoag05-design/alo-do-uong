@@ -9,6 +9,7 @@ import CustomersPage from './pages/CustomersPage'
 import RevenuePage from './pages/RevenuePage'
 import SettingsPage from './pages/SettingsPage'
 import LoginPage from './pages/LoginPage'
+import CategoriesPage from './pages/CategoriesPage'
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem("admin_token"));
@@ -25,6 +26,7 @@ function App() {
             <Route path="products" element={<ProductsPage />} />
             <Route path="products/new" element={<ProductFormPage />} />
             <Route path="products/:id" element={<ProductFormPage />} />
+            <Route path="categories" element={<CategoriesPage />} />
             <Route path="customers" element={<CustomersPage />} />
             <Route path="revenue" element={<RevenuePage />} />
             <Route path="settings" element={<SettingsPage />} />
