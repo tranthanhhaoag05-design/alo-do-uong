@@ -33,26 +33,36 @@ export default function CategoriesPage() {
 
   const handleAdd = async (e) => {
     e.preventDefault();
-    if (!newName) return;
     const storeId = localStorage.getItem("store_id");
+    
+    if (!storeId) {
+      alert("❌ Lỗi: Không tìm thấy ID cửa hàng. Vui lòng ĐĂNG XUẤT và ĐĂNG NHẬP lại!");
+      return;
+    }
+
+    if (!newName.trim()) {
+      alert("⚠️ Vui lòng nhập tên danh mục!");
+      return;
+    }
 
     try {
       const res = await fetch(BASE_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newName, store: storeId })
+        body: JSON.stringify({ name: newName.trim(), store: parseInt(storeId) })
       });
       if (res.ok) {
         setNewName("");
         fetchCategories();
       } else {
-        const err = await res.json();
-        alert("Lỗi từ máy chủ: " + JSON.stringify(err));
+        const errData = await res.json();
+        alert("❌ Lỗi từ máy chủ: " + JSON.stringify(errData));
       }
     } catch (error) {
-      alert("Lỗi kết nối khi thêm danh mục");
+      alert("❌ Lỗi kết nối máy chủ khi thêm danh mục");
     }
   };
+
 
   const handleUpdate = async (id) => {
     try {
