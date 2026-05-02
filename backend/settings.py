@@ -132,14 +132,15 @@ CORS_ALLOW_CREDENTIALS = True
 # QUAN TRỌNG: Thêm link Vercel và Render vào danh sách tin tưởng
 CSRF_TRUSTED_ORIGINS = [
     "https://alo-do-uong.vercel.app",
-    "https://alo-do-uong.onrender.com",  # FIX LỖI 403: ĐÃ CẤP QUYỀN CHO RENDER
-    "https://6xnhqq55-8000.asse.devtunnels.ms", 
-    "http://192.168.1.166:8000",
+    "https://alo-do-uong-xzcc.onrender.com",
     "http://127.0.0.1:8000",
+    "http://localhost:8000",
+    "https://*.vercel.app",
 ]
 
 # Cho phép Render nhận diện chính nó
-ALLOWED_HOSTS = ['alo-do-uong.onrender.com', 'localhost', '127.0.0.1', '*']
+ALLOWED_HOSTS = ['alo-do-uong-xzcc.onrender.com', 'localhost', '127.0.0.1', '*']
+
 
 # ==========================================
 # 🌟 CẤU HÌNH ĐỂ DJANGO XUẤT ẢNH QR RA BÊN NGOÀI
