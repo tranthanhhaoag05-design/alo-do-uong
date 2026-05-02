@@ -82,15 +82,25 @@ function StorePicker({ onSelect }) {
 // ─── HOME PAGE ────────────────────────────────────────────────────────────────
 function HomePage({ cart, setCart, setToast, setPage, storeData, isOpen, onChangeStore }) {
   const [activeCat, setActiveCat] = useState(0);
+  const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // 1. Fetch Categories
+    fetch(`https://alo-do-uong.onrender.com/api/categories/?store=${storeData.id}`)
+      .then(r => r.json())
+      .then(data => setCategories(data))
+      .catch(e => console.error(e));
+
+    // 2. Fetch Products
     fetch(`https://alo-do-uong.onrender.com/api/products/?store=${storeData.id}&active=true`)
       .then(r => r.json())
       .then(data => { setProducts(data); setLoading(false); })
       .catch(() => setLoading(false));
   }, [storeData]);
+
+  const filtered = activeCat === 0 ? products : products.filter(p => p.category === activeCat);
 
   const addToCart = (p) => {
     setCart(prev => {
@@ -116,19 +126,49 @@ function HomePage({ cart, setCart, setToast, setPage, storeData, isOpen, onChang
           </div>
         </div>
         
-        <div style={{ background: G, borderRadius: 18, padding: 16, color: "white", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ background: G, borderRadius: 18, padding: 16, color: "white", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 15 }}>
             <div>
                 <div style={{ fontSize: 12, opacity: 0.8 }}>Khuyến mãi đặc biệt</div>
                 <div style={{ fontSize: 16, fontWeight: 800 }}>Đặt ngay để nhận ưu đãi! 🎁</div>
             </div>
             <div style={{ fontSize: 32 }}>🔥</div>
         </div>
+
+        {/* Dynamic Categories Bar */}
+        <div style={{ overflowX: "auto", display: "flex", gap: 8, paddingBottom: 5 }} className="no-scroll">
+            <button 
+                onClick={() => setActiveCat(0)}
+                style={{
+                    padding: "8px 18px", borderRadius: 50, border: "none", whiteSpace: "nowrap",
+                    background: activeCat === 0 ? G : "#f4f6fb",
+                    color: activeCat === 0 ? "white" : "var(--text)",
+                    fontWeight: 700, fontSize: 13, cursor: "pointer"
+                }}
+            >🌟 Tất cả</button>
+            {categories.map(c => (
+                <button 
+                    key={c.id}
+                    onClick={() => setActiveCat(c.id)}
+                    style={{
+                        padding: "8px 18px", borderRadius: 50, border: "none", whiteSpace: "nowrap",
+                        background: activeCat === c.id ? G : "#f4f6fb",
+                        color: activeCat === c.id ? "white" : "var(--text)",
+                        fontWeight: 700, fontSize: 13, cursor: "pointer"
+                    }}
+                >
+                    {c.name.includes("Phê") ? "☕" : c.name.includes("Sữa") ? "🧋" : c.name.includes("Tố") ? "🥤" : "🥤"} {c.name}
+                </button>
+            ))}
+        </div>
       </div>
 
-      <div style={{ padding: "20px 16px 10px", fontSize: 18, fontWeight: 800 }}>Thực đơn hôm nay</div>
+      <div style={{ padding: "20px 16px 10px", fontSize: 18, fontWeight: 800 }}>
+        {activeCat === 0 ? "Thực đơn hôm nay" : categories.find(c => c.id === activeCat)?.name}
+      </div>
       {loading ? <div style={{ padding: 40, textAlign: "center" }}>Đang tải...</div> : (
         <div className="products-grid">
-          {products.map(p => (
+          {filtered.map(p => (
+
             <div key={p.id} className="product-card">
               <div style={{ height: 130, background: G_SOFT }}>
                 <img src={p.image_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} />

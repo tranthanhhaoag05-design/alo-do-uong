@@ -60,6 +60,10 @@ class LoginAdminAPI(APIView):
         return Response({"error": "Thông tin đăng nhập không chính xác"}, status=status.HTTP_400_BAD_REQUEST)
 
 
+from .serializers import StoreSerializer, ProductSerializer, OrderSerializer, CustomerSerializer, CategorySerializer
+
+# ... (những phần trước giữ nguyên)
+
 # 1. API Cửa hàng
 class StoreListAPI(generics.ListAPIView):
     queryset = Store.objects.all()
@@ -69,6 +73,17 @@ class StoreDetailAPI(generics.RetrieveUpdateAPIView):
     permission_classes = [AllowAny]
     queryset = Store.objects.all()
     serializer_class = StoreSerializer
+
+# 1.1 API Danh mục
+class CategoryListAPI(generics.ListAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = CategorySerializer
+    def get_queryset(self):
+        store_id = self.request.query_params.get('store')
+        if store_id:
+            return Category.objects.filter(store_id=store_id)
+        return Category.objects.none()
+
 
 # 2. API Sản phẩm
 class ProductListCreateAPI(generics.ListCreateAPIView):
