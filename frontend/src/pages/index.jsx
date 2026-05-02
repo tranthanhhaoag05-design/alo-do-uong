@@ -418,8 +418,9 @@ function HistoryPage({ orders }) {
           </div>
           <div style={{ fontSize: 13, color: "var(--muted)", fontWeight: 500 }}>{o.date}</div>
           <div style={{ marginTop: 15, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ fontSize: 14, color: "#1a1a2e", fontWeight: 600 }}>{o.items?.length} món</span>
+            <span style={{ fontSize: 14, color: "#1a1a2e", fontWeight: 600 }}>{o.items?.reduce((s, i) => s + i.qty, 0)} ly</span>
             <span style={{ fontWeight: 800, color: "var(--accent)", fontSize: 19 }}>{fmt(o.totalPrice)}</span>
+
           </div>
         </div>
       ))}
