@@ -138,6 +138,18 @@ class CreateOrderAPI(APIView):
                     customer_name=data.get('customer_name'), customer_phone=data.get('customer_phone'),
                     address=data.get('address'), total_price=data.get('total_price', 0)
                 )
+                
+                # Tự động cập nhật/tạo thông tin Khách hàng
+                customer, created = Customer.objects.get_or_create(
+                    store_id=order.store_id, 
+                    phone=order.customer_phone,
+                    defaults={'name': order.customer_name}
+                )
+                customer.total_orders += 1
+                customer.total_spent += int(order.total_price)
+                customer.address = order.address
+                customer.save()
+
                 for item in data.get('items', []):
                     qty = int(item.get('quantity', 0))
                     product = Product.objects.filter(store_id=order.store_id, name__iexact=item.get('product_name')).first()

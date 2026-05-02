@@ -20,8 +20,10 @@ function Sidebar({ collapsed, setCollapsed, storeName }) {
   const handleLogout = () => {
     localStorage.removeItem("admin_token");
     localStorage.removeItem("admin_user");
-    window.location.reload(); // Refresh to trigger redirect to login
+    localStorage.removeItem("store_id"); // Xóa cả store_id để tránh xung đột tài khoản
+    window.location.reload(); 
   };
+
 
   return (
     <aside

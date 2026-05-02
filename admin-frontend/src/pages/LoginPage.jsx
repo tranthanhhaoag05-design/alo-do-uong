@@ -35,8 +35,13 @@ export default function LoginPage({ onLogin }) {
         alert("Đăng ký thành công! Hãy đăng nhập.");
         setIsRegister(false);
       } else {
+        if (!data.store_id) {
+          setError("Tài khoản này chưa gắn với cửa hàng nào. Vui lòng đăng ký mới hoặc liên hệ kỹ thuật!");
+          return;
+        }
         loginSuccess(data);
       }
+
     } catch (err) {
       setError("Không thể kết nối tới server! Chi tiết: " + err.message);
     }
