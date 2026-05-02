@@ -374,13 +374,12 @@ function CheckoutPage({ cart, storeData, setPage, setToast, setOrders, isOpen })
         localStorage.setItem("alo_orders", JSON.stringify([newO, ...hist]));
         setOrders([newO, ...hist]);
         setPage("history");
-        setToast("Đặt hàng thành công! 🎉");
+        alert("🎉 Đặt hàng thành công! Mã đơn của bạn là: #" + data.order_code);
       } else {
-        setToast(data.error || "Lỗi đặt hàng!");
+        alert("❌ Lỗi: " + (data.error || "Không thể đặt hàng, vui lòng kiểm tra lại!"));
       }
     } catch (e) {
-      setToast("Lỗi kết nối máy chủ!");
-      window.scrollTo(0, 0);
+      alert("❌ Lỗi kết nối máy chủ! Vui lòng kiểm tra lại mạng.");
     }
     setLoading(false);
   };
