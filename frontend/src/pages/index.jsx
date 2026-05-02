@@ -344,8 +344,16 @@ function CheckoutPage({ cart, storeData, setPage, setToast, setOrders, isOpen })
   const isFormValid = name.trim() && phone.trim() && addr.trim();
 
   const handleSubmit = async () => {
-    if (!isFormValid) return setToast("⚠️ Bạn ơi, vui lòng điền đủ Họ tên, SĐT và Địa chỉ nhé!");
-    if (!isOpen) return setToast("Quán đang tạm nghỉ, hẹn bạn lúc khác nhé!");
+    if (!isFormValid) {
+        setToast("⚠️ Bạn ơi, vui lòng điền đủ Họ tên, SĐT và Địa chỉ nhé!");
+        window.scrollTo(0,0);
+        return;
+    }
+    if (!isOpen) {
+        setToast("Quán đang tạm nghỉ, hẹn bạn lúc khác nhé!");
+        window.scrollTo(0,0);
+        return;
+    }
     setLoading(true);
     localStorage.setItem("alo_name", name);
     localStorage.setItem("alo_phone", phone);
@@ -371,7 +379,10 @@ function CheckoutPage({ cart, storeData, setPage, setToast, setOrders, isOpen })
       } else {
         setToast(data.error || "Lỗi đặt hàng!");
       }
-    } catch (e) { setToast("Lỗi kết nối máy chủ!"); }
+    } catch (e) { 
+      setToast("Lỗi kết nối máy chủ!"); 
+      window.scrollTo(0,0);
+    }
     setLoading(false);
   };
 
@@ -472,7 +483,7 @@ export default function App() {
   const handleToast = (m) => { setToast(m); setTimeout(() => setToast(""), 2500); };
 
   const isOpen = () => {
-    if (!storeData || !storeData.is_active) return false;
+    if (!storeData || !storeData.is_active || !storeData.is_open) return false;
     const now = new Date();
     const cur = now.getHours() * 60 + now.getMinutes();
     const [oh, om] = (storeData.opening_time || "07:00").split(":").map(Number);

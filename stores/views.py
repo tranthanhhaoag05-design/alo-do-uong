@@ -131,8 +131,10 @@ class CreateOrderAPI(APIView):
         data = request.data
         try:
             with transaction.atomic():
+                # Tạo mã đơn 6 số ngẫu nhiên
                 import random, string
                 code = ''.join(random.choices(string.digits, k=6))
+                
                 order = Order.objects.create(
                     order_code=code, store_id=data.get('store', 1),
                     customer_name=data.get('customer_name'), customer_phone=data.get('customer_phone'),
@@ -153,23 +155,21 @@ class CreateOrderAPI(APIView):
                 for item in data.get('items', []):
                     qty = int(item.get('quantity', 0))
                     product = Product.objects.filter(store_id=order.store_id, name__iexact=item.get('product_name')).first()
+                    if not product or product.stock < qty:
+                        raise Exception(f"Món '{item.get('product_name')}' chỉ còn {product.stock if product else 0} phần, không đủ để giao!")
                     
-                    if product:
-                        if product.stock < qty:
-                            raise Exception(f"Món '{product.name}' chỉ còn {product.stock} suất, không đủ cung cấp. Vui lòng giảm số lượng hoặc chọn món khác.")
-                        # Trừ tồn kho
-                        product.stock -= qty
-                        product.save()
-                        
+                    product.stock -= qty
+                    product.save()
+
                     OrderItem.objects.create(
                         order=order, product_name=item.get('product_name'),
                         quantity=qty, price=item.get('price'),
-                        note=item.get('note', ''),
-                        cost_price=product.cost_price if product else 0
+                        note=item.get('note', ''), cost_price=product.cost_price
                     )
+                
                 return Response(OrderSerializer(order).data, status=status.HTTP_201_CREATED)
-
-        except Exception as e: return Response({"error": str(e)}, status=400)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 # 4. Thống kê & Dashboard
 class DashboardStatsAPI(APIView):
