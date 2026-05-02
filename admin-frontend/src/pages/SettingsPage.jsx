@@ -17,7 +17,13 @@ export default function SettingsPage() {
 
   useEffect(() => {
     const storeId = localStorage.getItem("store_id");
+    if (!storeId) {
+      alert("Không tìm thấy thông tin cửa hàng. Vui lòng đăng nhập lại!");
+      setLoading(false);
+      return;
+    }
     fetch(`https://alo-do-uong.onrender.com/api/stores/${storeId}/`)
+
       .then(res => res.json())
       .then(data => {
         setName(data.name || "");
