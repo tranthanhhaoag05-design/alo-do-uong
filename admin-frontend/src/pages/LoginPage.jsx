@@ -38,8 +38,9 @@ export default function LoginPage({ onLogin }) {
         loginSuccess(data);
       }
     } catch (err) {
-      setError("Không thể kết nối tới server!");
+      setError("Không thể kết nối tới server! Chi tiết: " + err.message);
     }
+
   };
 
   const loginSuccess = (data) => {

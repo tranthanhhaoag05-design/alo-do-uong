@@ -127,16 +127,17 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 
-# QUAN TRỌNG: Mở rộng quyền truy cập để không bị chặn
+# MỞ CỬA TỐI ĐA ĐỂ TRÁNH LỖI KẾT NỐI
 CSRF_TRUSTED_ORIGINS = [
     "https://alo-do-uong.vercel.app",
     "https://alo-do-uong.onrender.com",
     "https://alo-do-uong-xzcc.onrender.com",
-    "http://localhost:3000",
-    "http://localhost:5173",
+    "https://*.onrender.com",
+    "https://*.vercel.app",
 ]
 
-ALLOWED_HOSTS = ['alo-do-uong.onrender.com', 'alo-do-uong-xzcc.onrender.com', 'localhost', '127.0.0.1', '*']
+ALLOWED_HOSTS = ['*']
+
 
 
 
