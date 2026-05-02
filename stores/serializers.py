@@ -20,7 +20,8 @@ class ProductSerializer(serializers.ModelSerializer):
 class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderItem
-        fields = ['product_name', 'quantity', 'price']
+        fields = ['product_name', 'quantity', 'price', 'note']
+
 
 class CustomerSerializer(serializers.ModelSerializer):
     class Meta:

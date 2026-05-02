@@ -94,7 +94,9 @@ class OrderItem(models.Model):
     product_name = models.CharField(max_length=255)
     quantity = models.IntegerField(default=1)
     price = models.IntegerField()
+    note = models.CharField(max_length=255, blank=True, null=True, verbose_name="Ghi chú món")
     cost_price = models.IntegerField(verbose_name="Giá nhập lúc mua", default=0)
+
 
     def __str__(self):
         return f"{self.quantity} x {self.product_name}"

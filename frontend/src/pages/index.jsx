@@ -92,9 +92,19 @@ function HomePage({ cart, setCart, setToast, setPage, storeData, isOpen, onChang
   const featured = products.slice(0, 4);
 
   const addToCart = (p) => {
+    if (p.stock <= 0) {
+      setToast("Món này hiện đã hết hàng!");
+      return;
+    }
     setCart(prev => {
-      const ex = prev.find(i => i.id === p.id);
-      if (ex) return prev.map(i => i.id === p.id ? { ...i, qty: i.qty + 1 } : i);
+      const exist = prev.find(i => i.id === p.id);
+      if (exist) {
+        if (exist.qty >= p.stock) {
+          setToast(`Món này chỉ còn ${p.stock} suất!`);
+          return prev;
+        }
+        return prev.map(i => i.id === p.id ? { ...i, qty: i.qty + 1 } : i);
+      }
       return [...prev, { ...p, qty: 1 }];
     });
     setToast(`Đã thêm ${p.name} 🛒`);
@@ -139,7 +149,13 @@ function HomePage({ cart, setCart, setToast, setPage, storeData, isOpen, onChang
                             <img src={p.image_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                         </div>
                         <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4 }}>{p.name}</div>
-                        <div style={{ fontWeight: 800, color: "var(--accent)" }}>{fmt(p.price)}</div>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <div style={{ fontWeight: 800, color: "var(--accent)" }}>{fmt(p.price)}</div>
+                          <div style={{ fontSize: 10, color: p.stock > 0 ? "#64748b" : "#ef4444", fontWeight: 700 }}>
+                            {p.stock > 0 ? `Còn: ${p.stock}` : "Hết"}
+                          </div>
+                        </div>
+
                     </div>
                 ))}
             </div>
@@ -157,9 +173,22 @@ function HomePage({ cart, setCart, setToast, setPage, storeData, isOpen, onChang
               <div style={{ height: 140, background: G_SOFT }}><img src={p.image_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} /></div>
               <div style={{ padding: 14 }}>
                 <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6, color: "#1a1a2e" }}>{p.name}</div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <div style={{ fontWeight: 800, color: "var(--accent)", fontSize: 17 }}>{fmt(p.price)}</div>
-                  <button className="btn-grad" style={{ width: 34, height: 34, fontSize: 22, display: "flex", alignItems: "center", justifyContent: "center" }}>+</button>
+                <div style={{ marginTop: 10, display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                  <div>
+                    <div style={{ color: "var(--accent)", fontWeight: 800, fontSize: 18 }}>{fmt(p.price)}</div>
+                    <div style={{ fontSize: 11, color: p.stock > 0 ? "#64748b" : "#ef4444", fontWeight: 600, marginTop: 2 }}>
+                      {p.stock > 0 ? `Còn lại: ${p.stock}` : "Hết hàng"}
+                    </div>
+                  </div>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); addToCart(p); }}
+                    style={{ 
+                      width: 35, height: 35, borderRadius: 12, border: "none", 
+                      background: p.stock > 0 ? G : "#cbd5e1", color: "white", fontWeight: 800,
+                      cursor: p.stock > 0 ? "pointer" : "default"
+                    }}
+                    disabled={p.stock <= 0}
+                  >+</button>
                 </div>
               </div>
             </div>
@@ -173,7 +202,18 @@ function HomePage({ cart, setCart, setToast, setPage, storeData, isOpen, onChang
 // ─── CART PAGE ────────────────────────────────────────────────────────────────
 function CartPage({ cart, setCart, setPage }) {
   const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
-  const updateQty = (id, delta) => setCart(p => p.map(i => i.id === id ? { ...i, qty: Math.max(0, i.qty + delta) } : i).filter(i => i.qty > 0));
+  const updateQty = (id, delta) => setCart(p => p.map(i => {
+    if (i.id === id) {
+      const newQty = i.qty + delta;
+      if (newQty > i.stock) {
+        handleToast(`Món này chỉ còn ${i.stock} suất!`, "error");
+        return i;
+      }
+      return { ...i, qty: Math.max(0, newQty) };
+    }
+    return i;
+  }).filter(i => i.qty > 0));
+
 
   if (cart.length === 0) return <div style={{ padding: 120, textAlign: "center" }}><div style={{ fontSize: 80 }}>🛒</div><div style={{ fontWeight: 800, fontSize: 22, marginTop: 15, color: "#1a1a2e" }}>Giỏ hàng đang trống</div><p style={{ color: "var(--muted)", marginTop: 8 }}>Mời bạn quay lại chọn món ngon nhé!</p><button onClick={() => setPage("home")} className="btn-grad" style={{ padding: "14px 28px", marginTop: 25, fontSize: 16 }}>Quay lại mua sắm</button></div>;
 
@@ -323,8 +363,11 @@ function CheckoutPage({ cart, storeData, setPage, setToast, setOrders, isOpen })
         setOrders([newO, ...hist]);
         setPage("history");
         setToast("Đặt hàng thành công! 🎉");
+      } else {
+        setToast(data.error || "Lỗi đặt hàng!");
       }
-    } catch (e) { setToast("Lỗi kết nối!"); }
+    } catch (e) { setToast("Lỗi kết nối máy chủ!"); }
+
     setLoading(false);
   };
 

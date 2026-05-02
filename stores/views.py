@@ -139,13 +139,24 @@ class CreateOrderAPI(APIView):
                     address=data.get('address'), total_price=data.get('total_price', 0)
                 )
                 for item in data.get('items', []):
+                    qty = int(item.get('quantity', 0))
                     product = Product.objects.filter(store_id=order.store_id, name__iexact=item.get('product_name')).first()
+                    
+                    if product:
+                        if product.stock < qty:
+                            raise Exception(f"Món '{product.name}' chỉ còn {product.stock} suất, không đủ cung cấp. Vui lòng giảm số lượng hoặc chọn món khác.")
+                        # Trừ tồn kho
+                        product.stock -= qty
+                        product.save()
+                        
                     OrderItem.objects.create(
                         order=order, product_name=item.get('product_name'),
-                        quantity=item.get('quantity'), price=item.get('price'),
+                        quantity=qty, price=item.get('price'),
+                        note=item.get('note', ''),
                         cost_price=product.cost_price if product else 0
                     )
                 return Response(OrderSerializer(order).data, status=status.HTTP_201_CREATED)
+
         except Exception as e: return Response({"error": str(e)}, status=400)
 
 # 4. Thống kê & Dashboard
