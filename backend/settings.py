@@ -125,21 +125,18 @@ STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 CORS_ALLOW_ALL_ORIGINS = True
-
-# Cho phép gửi kèm Cookie nếu cần
 CORS_ALLOW_CREDENTIALS = True
 
-# QUAN TRỌNG: Thêm link Vercel và Render vào danh sách tin tưởng
+# QUAN TRỌNG: Mở rộng quyền truy cập để không bị chặn
 CSRF_TRUSTED_ORIGINS = [
-    "https://alo-do-uong.vercel.app",
-    "https://alo-do-uong-xzcc.onrender.com",
-    "http://127.0.0.1:8000",
-    "http://localhost:8000",
     "https://*.vercel.app",
+    "https://*.onrender.com",
+    "http://localhost:3000",
+    "http://localhost:5173",
 ]
 
-# Cho phép Render nhận diện chính nó
-ALLOWED_HOSTS = ['alo-do-uong-xzcc.onrender.com', 'localhost', '127.0.0.1', '*']
+ALLOWED_HOSTS = ['*']
+
 
 
 # ==========================================
