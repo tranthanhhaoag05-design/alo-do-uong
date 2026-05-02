@@ -29,8 +29,9 @@ const globalStyle = `
   .product-card:active { transform: scale(0.97); }
   .btn-grad { background: var(--grad); color: white; border: none; border-radius: 50px; font-family: inherit; font-weight: 700; cursor: pointer; transition: all 0.2s; }
   .btn-grad:active { transform: scale(0.96); }
-  .input-field { width: 100%; border: 2px solid var(--border); border-radius: 14px; padding: 12px 16px; font-family: inherit; font-size: 15px; outline: none; }
-  .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(30,30,50,0.92); color: white; padding: 10px 20px; border-radius: 50px; z-index: 1000; animation: fadeUp 0.3s ease; }
+  .input-field { width: 100%; border: 2px solid var(--border); border-radius: 14px; padding: 12px 16px; font-family: inherit; font-size: 15px; outline: none; transition: border-color 0.2s; }
+  .input-field:focus { border-color: var(--accent); }
+  .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(30,30,50,0.92); color: white; padding: 10px 20px; border-radius: 50px; z-index: 1000; animation: fadeUp 0.3s ease both; backdrop-filter: blur(10px); }
   @keyframes fadeUp { from { transform: translate(-50%, 20px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
   .dot-loader span { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--grad); animation: pulse 1.4s infinite; }
   @keyframes pulse { 0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; } 40% { transform: scale(1); opacity: 1; } }
@@ -87,17 +88,11 @@ function HomePage({ cart, setCart, setToast, setPage, storeData, isOpen, onChang
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 1. Fetch Categories
     fetch(`https://alo-do-uong.onrender.com/api/categories/?store=${storeData.id}`)
-      .then(r => r.json())
-      .then(data => setCategories(data))
-      .catch(e => console.error(e));
+      .then(r => r.json()).then(data => setCategories(data)).catch(e => console.error(e));
 
-    // 2. Fetch Products
     fetch(`https://alo-do-uong.onrender.com/api/products/?store=${storeData.id}&active=true`)
-      .then(r => r.json())
-      .then(data => { setProducts(data); setLoading(false); })
-      .catch(() => setLoading(false));
+      .then(r => r.json()).then(data => { setProducts(data); setLoading(false); }).catch(() => setLoading(false));
   }, [storeData]);
 
   const filtered = activeCat === 0 ? products : products.filter(p => p.category === activeCat);
@@ -113,7 +108,6 @@ function HomePage({ cart, setCart, setToast, setPage, storeData, isOpen, onChang
 
   return (
     <div style={{ paddingBottom: 100 }}>
-      {/* Header */}
       <div style={{ padding: "20px 16px", background: "white", borderRadius: "0 0 24px 24px", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 15 }}>
           <button onClick={onChangeStore} style={{ border: "none", background: "#f0f4ff", color: "var(--accent)", width: 40, height: 40, borderRadius: "50%", fontSize: 18, cursor: "pointer" }}>⬅️</button>
@@ -134,45 +128,22 @@ function HomePage({ cart, setCart, setToast, setPage, storeData, isOpen, onChang
             <div style={{ fontSize: 32 }}>🔥</div>
         </div>
 
-        {/* Dynamic Categories Bar */}
         <div style={{ overflowX: "auto", display: "flex", gap: 8, paddingBottom: 5 }} className="no-scroll">
-            <button 
-                onClick={() => setActiveCat(0)}
-                style={{
-                    padding: "8px 18px", borderRadius: 50, border: "none", whiteSpace: "nowrap",
-                    background: activeCat === 0 ? G : "#f4f6fb",
-                    color: activeCat === 0 ? "white" : "var(--text)",
-                    fontWeight: 700, fontSize: 13, cursor: "pointer"
-                }}
-            >🌟 Tất cả</button>
+            <button onClick={() => setActiveCat(0)} style={{ padding: "8px 18px", borderRadius: 50, border: "none", whiteSpace: "nowrap", background: activeCat === 0 ? G : "#f4f6fb", color: activeCat === 0 ? "white" : "var(--text)", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>🌟 Tất cả</button>
             {categories.map(c => (
-                <button 
-                    key={c.id}
-                    onClick={() => setActiveCat(c.id)}
-                    style={{
-                        padding: "8px 18px", borderRadius: 50, border: "none", whiteSpace: "nowrap",
-                        background: activeCat === c.id ? G : "#f4f6fb",
-                        color: activeCat === c.id ? "white" : "var(--text)",
-                        fontWeight: 700, fontSize: 13, cursor: "pointer"
-                    }}
-                >
-                    {c.name.includes("Phê") ? "☕" : c.name.includes("Sữa") ? "🧋" : c.name.includes("Tố") ? "🥤" : "🥤"} {c.name}
+                <button key={c.id} onClick={() => setActiveCat(c.id)} style={{ padding: "8px 18px", borderRadius: 50, border: "none", whiteSpace: "nowrap", background: activeCat === c.id ? G : "#f4f6fb", color: activeCat === c.id ? "white" : "var(--text)", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
+                    {c.name.includes("Phê") ? "☕" : c.name.includes("Sữa") ? "🧋" : "🥤"} {c.name}
                 </button>
             ))}
         </div>
       </div>
 
-      <div style={{ padding: "20px 16px 10px", fontSize: 18, fontWeight: 800 }}>
-        {activeCat === 0 ? "Thực đơn hôm nay" : categories.find(c => c.id === activeCat)?.name}
-      </div>
+      <div style={{ padding: "20px 16px 10px", fontSize: 18, fontWeight: 800 }}>{activeCat === 0 ? "Thực đơn hôm nay" : categories.find(c => c.id === activeCat)?.name}</div>
       {loading ? <div style={{ padding: 40, textAlign: "center" }}>Đang tải...</div> : (
         <div className="products-grid">
           {filtered.map(p => (
-
             <div key={p.id} className="product-card">
-              <div style={{ height: 130, background: G_SOFT }}>
-                <img src={p.image_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-              </div>
+              <div style={{ height: 130, background: G_SOFT }}><img src={p.image_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} /></div>
               <div style={{ padding: 12 }}>
                 <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 5 }}>{p.name}</div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -193,13 +164,7 @@ function CartPage({ cart, setCart, setPage }) {
   const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const updateQty = (id, delta) => setCart(p => p.map(i => i.id === id ? { ...i, qty: Math.max(0, i.qty + delta) } : i).filter(i => i.qty > 0));
 
-  if (cart.length === 0) return (
-    <div style={{ padding: 100, textAlign: "center" }}>
-      <div style={{ fontSize: 60 }}>🛒</div>
-      <div style={{ fontWeight: 800, fontSize: 20, marginTop: 10 }}>Giỏ hàng trống</div>
-      <button onClick={() => setPage("home")} className="btn-grad" style={{ padding: "10px 20px", marginTop: 20 }}>Quay lại mua sắm</button>
-    </div>
-  );
+  if (cart.length === 0) return <div style={{ padding: 100, textAlign: "center" }}><div style={{ fontSize: 60 }}>🛒</div><div style={{ fontWeight: 800, fontSize: 20, marginTop: 10 }}>Giỏ hàng trống</div><button onClick={() => setPage("home")} className="btn-grad" style={{ padding: "10px 20px", marginTop: 20 }}>Quay lại mua sắm</button></div>;
 
   return (
     <div style={{ padding: "20px 16px 120px" }}>
@@ -219,11 +184,8 @@ function CartPage({ cart, setCart, setPage }) {
           <div style={{ fontWeight: 800, alignSelf: "center" }}>{fmt(i.price * i.qty)}</div>
         </div>
       ))}
-      <div style={{ position: "fixed", bottom: 80, left: 0, width: "100%", padding: "20px 16px", background: "white", borderTop: "1px solid #eee", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div>
-            <div style={{ fontSize: 12, color: "var(--muted)" }}>Tổng thanh toán</div>
-            <div style={{ fontSize: 20, fontWeight: 800, color: "var(--accent)" }}>{fmt(total)}</div>
-        </div>
+      <div style={{ position: "fixed", bottom: 80, left: 50, transform: "translateX(-50%)", width: "100%", maxWidth: 1450, padding: "20px 16px", background: "white", borderTop: "1px solid #eee", display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 90 }}>
+        <div><div style={{ fontSize: 12, color: "var(--muted)" }}>Tổng thanh toán</div><div style={{ fontSize: 20, fontWeight: 800, color: "var(--accent)" }}>{fmt(total)}</div></div>
         <button onClick={() => setPage("checkout")} className="btn-grad" style={{ padding: "15px 30px" }}>Tiếp tục</button>
       </div>
     </div>
@@ -235,33 +197,54 @@ function CheckoutPage({ cart, storeData, setPage, setToast, setOrders, isOpen })
   const [name, setName] = useState(localStorage.getItem("alo_name") || "");
   const [phone, setPhone] = useState(localStorage.getItem("alo_phone") || "");
   const [addr, setAddr] = useState(localStorage.getItem("alo_addr") || "");
+  const [gps, setGps] = useState("");
   const [loading, setLoading] = useState(false);
+  const [distance, setDistance] = useState(0);
+  const [shippingFee, setShippingFee] = useState(0);
+
+  const calculateDistance = (uLat, uLng) => {
+    if (!storeData || !storeData.latitude) return 1;
+    const R = 6371;
+    const dLat = (uLat - storeData.latitude) * Math.PI / 180;
+    const dLon = (uLng - storeData.longitude) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(storeData.latitude * Math.PI/180) * Math.cos(uLat * Math.PI/180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  };
+
+  const getLocation = () => {
+    navigator.geolocation.getCurrentPosition(pos => {
+        const d = calculateDistance(pos.coords.latitude, pos.coords.longitude);
+        setDistance(d);
+        setShippingFee(d < 5 ? 0 : Math.round(d * 3000));
+        setGps(`${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`);
+    });
+  };
+
+  const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const finalTotal = total + shippingFee;
 
   const handleSubmit = async () => {
     if (!name || !phone || !addr) return setToast("Vui lòng điền đủ thông tin!");
-    if (!isOpen) return setToast("Quán đang tạm nghỉ, không thể nhận đơn!");
-    
+    if (!isOpen) return setToast("Quán đang tạm nghỉ!");
     setLoading(true);
     localStorage.setItem("alo_name", name);
     localStorage.setItem("alo_phone", phone);
     localStorage.setItem("alo_addr", addr);
 
     const payload = {
-      store: storeData.id,
-      customer_name: name, customer_phone: phone, address: addr,
-      total_price: cart.reduce((s, i) => s + i.price * i.qty, 0),
-      items: cart.map(i => ({ product_name: i.name, quantity: i.qty, price: i.price }))
+      store: storeData.id, customer_name: name, customer_phone: phone, address: `${addr} (GPS: ${gps})`,
+      total_price: finalTotal, items: cart.map(i => ({ product_name: i.name, quantity: i.qty, price: i.price }))
     };
 
     try {
       const res = await fetch("https://alo-do-uong.onrender.com/api/orders/create/", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload)
       });
       const data = await res.json();
       if (res.ok) {
         const hist = JSON.parse(localStorage.getItem("alo_orders") || "[]");
-        const newO = { order_code: data.order_code, status: "Chờ xử lý", date: new Date().toLocaleString(), totalPrice: payload.total_price, items: cart };
+        const newO = { order_code: data.order_code, status: "Chờ xử lý", date: new Date().toLocaleString(), totalPrice: finalTotal, items: cart };
         localStorage.setItem("alo_orders", JSON.stringify([newO, ...hist]));
         setOrders([newO, ...hist]);
         setPage("history");
@@ -272,29 +255,32 @@ function CheckoutPage({ cart, storeData, setPage, setToast, setOrders, isOpen })
   };
 
   return (
-    <div style={{ padding: "20px 16px" }}>
+    <div style={{ padding: "20px 16px 120px" }}>
       <h2 style={{ marginBottom: 20, fontWeight: 800 }}>📍 Thông tin nhận hàng</h2>
-      <div style={{ background: "white", padding: 20, borderRadius: 20, display: "flex", flexDirection: "column", gap: 15 }}>
+      <div style={{ background: "white", padding: 20, borderRadius: 20, display: "flex", flexDirection: "column", gap: 15, boxShadow: "0 2px 10px rgba(0,0,0,0.05)" }}>
         <input className="input-field" placeholder="Họ tên của bạn" value={name} onChange={e => setName(e.target.value)} />
         <input className="input-field" placeholder="Số điện thoại" value={phone} onChange={e => setPhone(e.target.value)} />
+        
+        <div style={{ display: "flex", gap: 8 }}>
+            <input className="input-field" placeholder="Tọa độ GPS" value={gps} readOnly style={{ flex: 1, background: "#f8fafc" }} />
+            <button onClick={getLocation} className="btn-grad" style={{ padding: "0 15px", fontSize: 12 }}>📍 Lấy GPS</button>
+        </div>
         <input className="input-field" placeholder="Địa chỉ giao hàng" value={addr} onChange={e => setAddr(e.target.value)} />
       </div>
       
-      <div style={{ marginTop: 30, background: "white", padding: 20, borderRadius: 20 }}>
+      <div style={{ marginTop: 25, background: "white", padding: 20, borderRadius: 20, boxShadow: "0 2px 10px rgba(0,0,0,0.05)" }}>
         <div style={{ fontWeight: 800, marginBottom: 15 }}>Tóm tắt đơn hàng</div>
-        {cart.map(i => (
-            <div key={i.id} style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontSize: 14 }}>
-                <span>{i.name} x{i.qty}</span>
-                <span style={{ fontWeight: 700 }}>{fmt(i.price * i.qty)}</span>
-            </div>
-        ))}
-        <div style={{ borderTop: "1px solid #eee", marginTop: 10, paddingTop: 10, display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: 18 }}>
-            <span>Tổng cộng</span>
-            <span style={{ color: "var(--accent)" }}>{fmt(cart.reduce((s, i) => s + i.price * i.qty, 0))}</span>
+        {cart.map(i => <div key={i.id} style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontSize: 14 }}><span>{i.name} x{i.qty}</span><span style={{ fontWeight: 700 }}>{fmt(i.price * i.qty)}</span></div>)}
+        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 10, fontSize: 14, color: "var(--muted)" }}>
+            <span>Phí giao hàng ({distance > 0 ? `${distance.toFixed(1)}km` : "Chưa tính"})</span>
+            <span>{shippingFee === 0 ? "Miễn phí" : fmt(shippingFee)}</span>
+        </div>
+        <div style={{ borderTop: "1px solid #eee", marginTop: 12, paddingTop: 12, display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: 19 }}>
+            <span>Tổng cộng</span><span style={{ color: "var(--accent)" }}>{fmt(finalTotal)}</span>
         </div>
       </div>
 
-      <button onClick={handleSubmit} disabled={loading} className="btn-grad" style={{ width: "100%", padding: 18, marginTop: 30, fontSize: 16 }}>
+      <button onClick={handleSubmit} disabled={loading} className="btn-grad" style={{ width: "100%", padding: 18, marginTop: 30, fontSize: 16, boxShadow: "0 4px 15px rgba(41,121,255,0.3)" }}>
         {loading ? "Đang xử lý..." : "XÁC NHẬN ĐẶT HÀNG"}
       </button>
     </div>
@@ -311,7 +297,7 @@ function HistoryPage({ orders }) {
         <div key={idx} style={{ background: "white", padding: 18, borderRadius: 20, marginBottom: 15, boxShadow: "0 2px 10px rgba(0,0,0,0.05)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
             <span style={{ fontWeight: 800 }}>Đơn #{o.order_code}</span>
-            <span style={{ background: "#fff3cd", color: "#856404", padding: "2px 10px", borderRadius: 20, fontSize: 11, fontWeight: 700 }}>{o.status}</span>
+            <span style={{ background: "#d4f5e9", color: "#0a6e47", padding: "2px 10px", borderRadius: 20, fontSize: 11, fontWeight: 700 }}>{o.status}</span>
           </div>
           <div style={{ fontSize: 12, color: "var(--muted)" }}>{o.date}</div>
           <div style={{ marginTop: 10, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
