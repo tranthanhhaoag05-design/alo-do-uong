@@ -34,18 +34,20 @@ export default function OrdersPage() {
   };
 
   const updateStatus = async (id, newStatus) => {
-    // Optimistic update
-    setOrders(orders.map(o => o.id === id ? { ...o, status: newStatus } : o));
+    // Functional update to avoid stale state
+    setOrders(prev => prev.map(o => o.id === id ? { ...o, status: newStatus } : o));
     
     // API call
     try {
-      await fetch(`https://alo-do-uong.onrender.com/api/orders/${id}/status/`, {
+      const res = await fetch(`https://alo-do-uong.onrender.com/api/orders/${id}/status/`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus })
       });
+      if (!res.ok) throw new Error("Update failed");
     } catch (error) {
       console.error("Lỗi cập nhật trạng thái:", error);
+      alert("⚠️ Không thể cập nhật trạng thái đơn hàng. Vui lòng thử lại!");
       fetchOrders(); // Revert on failure
     }
   };
