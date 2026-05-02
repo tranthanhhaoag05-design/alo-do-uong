@@ -442,7 +442,7 @@ function CheckoutPage({ cart, storeData, setPage, setToast, setOrders, isOpen, c
 
 // ─── HISTORY PAGE ─────────────────────────────────────────────────────────────
 
-function HistoryPage({ orders, isSyncing }) {
+function HistoryPage({ orders, isSyncing, onRefresh }) {
   const getStatusStyle = (s) => {
     switch(s) {
       case "Hoàn thành": return { bg: "#d4f5e9", color: "#0a6e47" };
@@ -459,16 +459,22 @@ function HistoryPage({ orders, isSyncing }) {
   return (
     <div style={{ padding: "24px 16px 120px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 25 }}>
-        <h2 style={{ margin: 0, fontWeight: 800, fontSize: 24 }}>📜 Lịch sử mua hàng</h2>
-        {isSyncing && <span style={{ fontSize: 10, color: "var(--accent)", fontWeight: 700, animation: "pulse 1.5s infinite" }}>🔄 ĐANG CẬP NHẬT...</span>}
+        <h2 style={{ margin: 0, fontWeight: 800, fontSize: 24 }}>📜 Lịch sử đơn hàng</h2>
+        <button 
+          onClick={onRefresh} 
+          disabled={isSyncing}
+          style={{ background: "#f8fafc", border: "1px solid #e2e8f0", padding: "8px 12px", borderRadius: 12, fontSize: 12, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 6, color: "#475569" }}
+        >
+          {isSyncing ? "⏳ Đang quét..." : "🔄 Cập nhật ngay"}
+        </button>
       </div>
       {orders.map((o, idx) => {
         const style = getStatusStyle(o.status);
         return (
-          <div key={idx} style={{ background: "white", padding: 20, borderRadius: 24, marginBottom: 16, boxShadow: "0 4px 15px rgba(0,0,0,0.04)", border: "1px solid #f0f3f8" }}>
+          <div key={idx} style={{ background: "white", padding: 20, borderRadius: 24, marginBottom: 16, boxShadow: "0 4px 15px rgba(0,0,0,0.04)", border: "1px solid #f0f3f8", position: "relative" }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
               <span style={{ fontWeight: 800, fontSize: 17 }}>Đơn #{o.order_code}</span>
-              <span style={{ background: style.bg, color: style.color, padding: "4px 14px", borderRadius: 20, fontSize: 12, fontWeight: 800 }}>{o.status}</span>
+              <span style={{ background: style.bg, color: style.color, padding: "4px 14px", borderRadius: 20, fontSize: 12, fontWeight: 800, transition: "all 0.3s" }}>{o.status}</span>
             </div>
             <div style={{ fontSize: 13, color: "var(--muted)", fontWeight: 500 }}>{o.date}</div>
             <div style={{ marginTop: 15, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -511,7 +517,7 @@ export default function App() {
       syncTimer = setInterval(() => {
         const currentO = JSON.parse(localStorage.getItem("alo_orders") || "[]");
         syncOrders(currentO);
-      }, 10000);
+      }, 5000); // Tăng tần suất lên 5 giây
     }
 
     return () => {
@@ -590,7 +596,7 @@ export default function App() {
 
 
       {page === "checkout" && <CheckoutPage cart={cart.filter(i => i.selected !== false)} storeData={storeData} setPage={setPage} setToast={handleToast} setOrders={setOrders} isOpen={isOpen()} clearCart={() => setCart(prev => prev.filter(i => i.selected === false))} />}
-      {page === "history" && <HistoryPage orders={orders} isSyncing={isSyncing} />}
+      {page === "history" && <HistoryPage orders={orders} isSyncing={isSyncing} onRefresh={() => syncOrders(orders)} />}
 
       <nav className="bottom-nav" style={{
         height: 75, background: "#fff", borderTop: "1px solid #f0f2f8",
