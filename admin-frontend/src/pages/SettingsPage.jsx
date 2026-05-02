@@ -16,7 +16,8 @@ export default function SettingsPage() {
   const [locLoading, setLocLoading] = useState(false);
 
   useEffect(() => {
-    fetch(`https://alo-do-uong.onrender.com/api/stores/1/?store=${localStorage.getItem("store_id")}`)
+    const storeId = localStorage.getItem("store_id");
+    fetch(`https://alo-do-uong.onrender.com/api/stores/${storeId}/`)
       .then(res => res.json())
       .then(data => {
         setName(data.name || "");
@@ -53,6 +54,7 @@ export default function SettingsPage() {
   };
 
   const handleSave = async () => {
+    const storeId = localStorage.getItem("store_id");
     const formData = new FormData();
     formData.append("name", name);
     formData.append("phone", phone);
@@ -65,10 +67,11 @@ export default function SettingsPage() {
     formData.append("longitude", lng);
 
     try {
-      const res = await fetch("https://alo-do-uong.onrender.com/api/stores/1/", {
+      const res = await fetch(`https://alo-do-uong.onrender.com/api/stores/${storeId}/`, {
         method: "PUT",
         body: formData,
       });
+
 
       if (res.ok) {
         setStoreName(name);
