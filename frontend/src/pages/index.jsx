@@ -442,22 +442,30 @@ function CheckoutPage({ cart, storeData, setPage, setToast, setOrders, isOpen, c
 
 // ─── HISTORY PAGE ─────────────────────────────────────────────────────────────
 
-function HistoryPage({ orders }) {
+function HistoryPage({ orders, isSyncing }) {
   if (orders.length === 0) return <div style={{ padding: 120, textAlign: "center" }}><div style={{ fontSize: 70 }}>📜</div><div style={{ fontWeight: 800, fontSize: 20, marginTop: 15 }}>Chưa có đơn hàng nào</div><button onClick={() => window.location.reload()} className="btn-grad" style={{ padding: "10px 20px", marginTop: 20 }}>Tải lại trang</button></div>;
   return (
     <div style={{ padding: "24px 16px 120px" }}>
-      <h2 style={{ marginBottom: 25, fontWeight: 800, fontSize: 24 }}>📜 Lịch sử mua hàng</h2>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 25 }}>
+        <h2 style={{ margin: 0, fontWeight: 800, fontSize: 24 }}>📜 Lịch sử mua hàng</h2>
+        {isSyncing && <span style={{ fontSize: 11, color: "var(--accent)", fontWeight: 700, animation: "pulse 1.5s infinite" }}>ĐANG CẬP NHẬT...</span>}
+      </div>
       {orders.map((o, idx) => (
         <div key={idx} style={{ background: "white", padding: 20, borderRadius: 24, marginBottom: 16, boxShadow: "0 4px 15px rgba(0,0,0,0.04)", border: "1px solid #f0f3f8" }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
             <span style={{ fontWeight: 800, fontSize: 17 }}>Đơn #{o.order_code}</span>
-            <span style={{ background: "#d4f5e9", color: "#0a6e47", padding: "4px 14px", borderRadius: 20, fontSize: 12, fontWeight: 800 }}>{o.status}</span>
+            <span style={{ 
+              background: o.status === "Hoàn thành" ? "#d4f5e9" : o.status === "Đã hủy" ? "#ffe0e0" : "#deeeff", 
+              color: o.status === "Hoàn thành" ? "#0a6e47" : o.status === "Đã hủy" ? "#b02020" : "#0d4a8a", 
+              padding: "4px 14px", borderRadius: 20, fontSize: 12, fontWeight: 800 
+            }}>
+              {o.status}
+            </span>
           </div>
           <div style={{ fontSize: 13, color: "var(--muted)", fontWeight: 500 }}>{o.date}</div>
           <div style={{ marginTop: 15, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span style={{ fontSize: 14, color: "#1a1a2e", fontWeight: 600 }}>{o.items?.reduce((s, i) => s + i.qty, 0)} ly</span>
             <span style={{ fontWeight: 800, color: "var(--accent)", fontSize: 19 }}>{fmt(o.totalPrice)}</span>
-
           </div>
         </div>
       ))}
@@ -474,20 +482,39 @@ export default function App() {
   const [toast, setToast] = useState("");
   const [showSplash, setShowSplash] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [isSyncing, setIsSyncing] = useState(false);
 
   useEffect(() => {
     const savedO = JSON.parse(localStorage.getItem("alo_orders") || "[]");
     setOrders(savedO);
+    if (page === "history") syncOrders(savedO);
     // Luôn bắt đầu bằng việc chọn cửa hàng mới để đảm bảo đúng quy trình bạn yêu cầu
     localStorage.removeItem("selected_store_id");
     setStoreData(null);
     
     setTimeout(() => setShowSplash(false), 2000);
     
-    // Đồng hồ chạy ngầm từng giây để kiểm tra giờ đóng/mở cửa thời gian thực
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [page]);
+
+  const syncOrders = async (list) => {
+    if (!list || list.length === 0) return;
+    setIsSyncing(true);
+    const updated = await Promise.all(list.map(async (o) => {
+      try {
+        const res = await fetch(`https://alo-do-uong.onrender.com/api/orders/track/${o.order_code}/?_t=${Date.now()}`);
+        if (res.ok) {
+          const data = await res.json();
+          return { ...o, status: data.status };
+        }
+      } catch (e) {}
+      return o;
+    }));
+    setOrders(updated);
+    localStorage.setItem("alo_orders", JSON.stringify(updated));
+    setIsSyncing(false);
+  };
 
   const handleStoreSelect = (s) => {
     setStoreData(s);
@@ -541,7 +568,7 @@ export default function App() {
 
 
       {page === "checkout" && <CheckoutPage cart={cart.filter(i => i.selected !== false)} storeData={storeData} setPage={setPage} setToast={handleToast} setOrders={setOrders} isOpen={isOpen()} clearCart={() => setCart(prev => prev.filter(i => i.selected === false))} />}
-      {page === "history" && <HistoryPage orders={orders} />}
+      {page === "history" && <HistoryPage orders={orders} isSyncing={isSyncing} />}
 
       <nav className="bottom-nav" style={{
         height: 75, background: "#fff", borderTop: "1px solid #f0f2f8",
