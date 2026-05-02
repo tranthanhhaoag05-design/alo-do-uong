@@ -3,7 +3,11 @@ import React, { useState, useEffect } from "react";
 export default function CategoriesPage() {
   const [categories, setCategories] = useState([]);
   const [newName, setNewName] = useState("");
+  const [editingId, setEditingId] = useState(null);
+  const [editName, setEditName] = useState("");
   const [loading, setLoading] = useState(true);
+
+  const BASE_URL = "https://alo-do-uong-xzcc.onrender.com/api/categories/";
 
   useEffect(() => {
     fetchCategories();
@@ -11,10 +15,15 @@ export default function CategoriesPage() {
 
   const fetchCategories = async () => {
     const storeId = localStorage.getItem("store_id");
+    if (!storeId) {
+      alert("Lỗi: Không tìm thấy ID cửa hàng. Vui lòng đăng xuất và đăng nhập lại!");
+      setLoading(false);
+      return;
+    }
     try {
-      const res = await fetch(`https://alo-do-uong-xzcc.onrender.com/api/categories/?store=${storeId}`);
+      const res = await fetch(`${BASE_URL}?store=${storeId}`);
       const data = await res.json();
-      setCategories(data);
+      setCategories(Array.isArray(data) ? data : []);
       setLoading(false);
     } catch (error) {
       console.error("Lỗi lấy danh mục:", error);
@@ -28,7 +37,7 @@ export default function CategoriesPage() {
     const storeId = localStorage.getItem("store_id");
     
     try {
-      const res = await fetch("https://alo-do-uong-xzcc.onrender.com/api/categories/", {
+      const res = await fetch(BASE_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: newName, store: storeId })
@@ -36,65 +45,117 @@ export default function CategoriesPage() {
       if (res.ok) {
         setNewName("");
         fetchCategories();
+      } else {
+        const err = await res.json();
+        alert("Lỗi từ máy chủ: " + JSON.stringify(err));
       }
     } catch (error) {
-      alert("Lỗi thêm danh mục");
+      alert("Lỗi kết nối khi thêm danh mục");
+    }
+  };
+
+  const handleUpdate = async (id) => {
+    try {
+      const res = await fetch(`${BASE_URL}${id}/`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: editName })
+      });
+      if (res.ok) {
+        setEditingId(null);
+        fetchCategories();
+      }
+    } catch (error) {
+      alert("Lỗi khi cập nhật");
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Xóa danh mục này?")) return;
+    if (!window.confirm("Bạn có chắc chắn muốn xóa danh mục này? Các sản phẩm thuộc danh mục này có thể bị ảnh hưởng.")) return;
     try {
-      await fetch(`https://alo-do-uong-xzcc.onrender.com/api/categories/${id}/`, { method: "DELETE" });
-      fetchCategories();
+      const res = await fetch(`${BASE_URL}${id}/`, { method: "DELETE" });
+      if (res.ok) {
+        fetchCategories();
+      }
     } catch (error) {
-      alert("Lỗi xóa danh mục");
+      alert("Lỗi khi xóa danh mục");
     }
   };
 
   return (
-    <div style={{ maxWidth: 600, margin: "0 auto" }}>
-      <h2 style={{ marginBottom: 24, fontSize: 20, fontWeight: 800 }}>Quản lý Danh Mục</h2>
+    <div style={{ maxWidth: 700, margin: "0 auto", padding: "20px" }}>
+      <div style={{ marginBottom: 30 }}>
+        <h2 style={{ fontSize: 24, fontWeight: 800, color: "#0d1117" }}>📂 Quản lý Danh Mục</h2>
+        <p style={{ color: "#8891a4", fontSize: 14 }}>Tạo các nhóm sản phẩm (ví dụ: Cà phê, Trà trái cây...) để khách dễ chọn món.</p>
+      </div>
       
       {/* Form thêm mới */}
-      <div style={{ background: "#fff", padding: 20, borderRadius: 14, border: "1px solid #e8ecf2", marginBottom: 20 }}>
-        <form onSubmit={handleAdd} style={{ display: "flex", gap: 10 }}>
+      <div style={{ background: "#fff", padding: 24, borderRadius: 16, boxShadow: "0 4px 20px rgba(0,0,0,0.05)", marginBottom: 25, border: "1px solid #e8ecf2" }}>
+        <form onSubmit={handleAdd} style={{ display: "flex", gap: 12 }}>
           <input 
             type="text" 
             value={newName} 
             onChange={e => setNewName(e.target.value)}
-            placeholder="Tên danh mục mới (ví dụ: Trà Trái Cây)"
-            style={{ flex: 1, padding: "12px", borderRadius: 8, border: "1px solid #c3cfe0", outline: "none" }}
+            placeholder="Nhập tên danh mục mới... (VD: Sinh Tố)"
+            style={{ flex: 1, padding: "14px 18px", borderRadius: 12, border: "2px solid #f0f2f8", outline: "none", fontSize: 15, transition: "border-color 0.2s" }}
           />
-          <button type="submit" style={{ padding: "0 20px", borderRadius: 8, border: "none", background: "#00c896", color: "#fff", fontWeight: 700, cursor: "pointer" }}>
-            Thêm
+          <button type="submit" style={{ padding: "0 28px", borderRadius: 12, border: "none", background: "linear-gradient(135deg, #00c896 0%, #00ab80 100%)", color: "#fff", fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 12px rgba(0,200,150,0.2)" }}>
+            THÊM NGAY
           </button>
         </form>
       </div>
 
-      {/* Danh sách */}
-      <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8ecf2", overflow: "hidden" }}>
-        {loading ? <div style={{ padding: 20, textAlign: "center" }}>Đang tải...</div> : (
+      {/* Danh sách danh mục */}
+      <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #e8ecf2", overflow: "hidden", boxShadow: "0 4px 20px rgba(0,0,0,0.05)" }}>
+        {loading ? (
+          <div style={{ padding: 40, textAlign: "center", color: "#8891a4" }}>Đang tải dữ liệu...</div>
+        ) : (
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ background: "#f9fafb" }}>
-                <th style={{ padding: "12px 20px", textAlign: "left", fontSize: 12, color: "#8891a4" }}>Tên Danh Mục</th>
-                <th style={{ padding: "12px 20px", textAlign: "right", fontSize: 12, color: "#8891a4" }}>Thao Tác</th>
+                <th style={{ padding: "16px 24px", textAlign: "left", fontSize: 13, fontWeight: 700, color: "#8891a4", textTransform: "uppercase" }}>Tên Danh Mục</th>
+                <th style={{ padding: "16px 24px", textAlign: "right", fontSize: 13, fontWeight: 700, color: "#8891a4", textTransform: "uppercase" }}>Thao Tác</th>
               </tr>
             </thead>
             <tbody>
-              {categories.map(c => (
-                <tr key={c.id} style={{ borderTop: "1px solid #f0f2f8" }}>
-                  <td style={{ padding: "14px 20px", fontWeight: 600 }}>{c.name}</td>
-                  <td style={{ padding: "14px 20px", textAlign: "right" }}>
-                    <button onClick={() => handleDelete(c.id)} style={{ background: "none", border: "none", color: "#e84a5f", cursor: "pointer", fontWeight: 600 }}>Xóa</button>
+              {categories.map((c, i) => (
+                <tr key={c.id} style={{ borderTop: "1px solid #f0f2f8", background: i % 2 === 0 ? "#fff" : "#fcfdff" }}>
+                  <td style={{ padding: "18px 24px" }}>
+                    {editingId === c.id ? (
+                      <input 
+                        value={editName} 
+                        onChange={e => setEditName(e.target.value)}
+                        autoFocus
+                        style={{ padding: "8px 12px", borderRadius: 8, border: "2px solid #2563eb", outline: "none", width: "100%" }}
+                      />
+                    ) : (
+                      <span style={{ fontWeight: 700, color: "#1a202c", fontSize: 16 }}>{c.name}</span>
+                    )}
+                  </td>
+                  <td style={{ padding: "18px 24px", textAlign: "right" }}>
+                    {editingId === c.id ? (
+                      <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+                        <button onClick={() => handleUpdate(c.id)} style={{ padding: "6px 14px", borderRadius: 8, border: "none", background: "#2563eb", color: "#fff", fontWeight: 700, cursor: "pointer" }}>Lưu</button>
+                        <button onClick={() => setEditingId(null)} style={{ padding: "6px 14px", borderRadius: 8, border: "1px solid #e8ecf2", background: "#fff", fontWeight: 700, cursor: "pointer" }}>Hủy</button>
+                      </div>
+                    ) : (
+                      <div style={{ display: "flex", gap: 15, justifyContent: "flex-end" }}>
+                        <button onClick={() => { setEditingId(c.id); setEditName(c.name); }} style={{ background: "none", border: "none", color: "#2563eb", cursor: "pointer", fontWeight: 700, fontSize: 14 }}>Sửa</button>
+                        <button onClick={() => handleDelete(c.id)} style={{ background: "none", border: "none", color: "#e84a5f", cursor: "pointer", fontWeight: 700, fontSize: 14 }}>Xóa</button>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         )}
-        {categories.length === 0 && !loading && <div style={{ padding: 30, textAlign: "center", color: "#8891a4" }}>Chưa có danh mục nào</div>}
+        {categories.length === 0 && !loading && (
+          <div style={{ padding: 60, textAlign: "center" }}>
+            <div style={{ fontSize: 50, marginBottom: 15 }}>📂</div>
+            <div style={{ color: "#8891a4", fontWeight: 600 }}>Chưa có danh mục nào. Hãy thêm danh mục đầu tiên nhé!</div>
+          </div>
+        )}
       </div>
     </div>
   );

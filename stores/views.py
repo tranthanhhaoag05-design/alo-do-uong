@@ -79,10 +79,11 @@ class CategoryListAPI(generics.ListCreateAPIView):
             return Category.objects.filter(store_id=store_id)
         return Category.objects.none()
 
-class CategoryDetailAPI(generics.RetrieveDestroyAPIView):
+class CategoryDetailAPI(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [AllowAny]
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+
 
 
 # 2. API Sản phẩm
