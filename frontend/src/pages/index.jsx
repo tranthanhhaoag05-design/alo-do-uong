@@ -228,7 +228,8 @@ function CartPage({ cart, setCart, setPage }) {
           <div style={{ fontWeight: 800, fontSize: 17, alignSelf: "center", color: "#1a1a2e" }}>{fmt(i.price * i.qty)}</div>
         </div>
       ))}
-      <div style={{ position: "fixed", bottom: 95, left: "50%", transform: "translateX(-50%)", width: "calc(100% - 32px)", maxWidth: 600, padding: "20px 24px", background: "white", borderRadius: 24, boxShadow: "0 -10px 30px rgba(0,0,0,0.08)", display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 90, border: "1px solid #f0f3f8" }}>
+      <div style={{ position: "fixed", bottom: 75, left: 0, right: 0, width: "100%", padding: "16px 24px", background: "white", boxShadow: "0 -10px 30px rgba(0,0,0,0.05)", display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 90, borderTop: "1px solid #f0f3f8" }}>
+
 
         <div><div style={{ fontSize: 13, color: "var(--muted)", fontWeight: 600 }}>Tổng thanh toán</div><div style={{ fontSize: 22, fontWeight: 800, color: "var(--accent)" }}>{fmt(total)}</div></div>
         <button onClick={() => setPage("checkout")} className="btn-grad" style={{ padding: "16px 35px", fontSize: 16, fontWeight: 800 }}>ĐẶT HÀNG NGAY</button>
