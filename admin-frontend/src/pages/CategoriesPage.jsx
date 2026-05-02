@@ -12,7 +12,7 @@ export default function CategoriesPage() {
   const fetchCategories = async () => {
     const storeId = localStorage.getItem("store_id");
     try {
-      const res = await fetch(`https://alo-do-uong.onrender.com/api/categories/?store=${storeId}`);
+      const res = await fetch(`https://alo-do-uong-xzcc.onrender.com/api/categories/?store=${storeId}`);
       const data = await res.json();
       setCategories(data);
       setLoading(false);
@@ -28,7 +28,7 @@ export default function CategoriesPage() {
     const storeId = localStorage.getItem("store_id");
     
     try {
-      const res = await fetch("https://alo-do-uong.onrender.com/api/categories/", {
+      const res = await fetch("https://alo-do-uong-xzcc.onrender.com/api/categories/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: newName, store: storeId })
@@ -45,7 +45,7 @@ export default function CategoriesPage() {
   const handleDelete = async (id) => {
     if (!window.confirm("Xóa danh mục này?")) return;
     try {
-      await fetch(`https://alo-do-uong.onrender.com/api/categories/${id}/`, { method: "DELETE" });
+      await fetch(`https://alo-do-uong-xzcc.onrender.com/api/categories/${id}/`, { method: "DELETE" });
       fetchCategories();
     } catch (error) {
       alert("Lỗi xóa danh mục");
