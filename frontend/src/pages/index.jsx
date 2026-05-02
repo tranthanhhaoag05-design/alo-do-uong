@@ -418,9 +418,9 @@ function CheckoutPage({ cart, storeData, setPage, setToast, setOrders, isOpen })
         className="btn-grad" 
         style={{ 
           width: "100%", padding: 20, marginTop: 35, fontSize: 18, fontWeight: 800, 
-          boxShadow: (isFormValid && isOpen) ? "0 10px 25px rgba(41,121,255,0.4)" : "none",
-          opacity: (isFormValid && isOpen) ? 1 : 0.6,
-          filter: (isFormValid && isOpen) ? "none" : "grayscale(0.8)",
+          boxShadow: isOpen ? "0 10px 25px rgba(41,121,255,0.4)" : "none",
+          opacity: isOpen ? 1 : 0.6,
+          filter: isOpen ? "none" : "grayscale(0.8)",
           cursor: (!isOpen || loading) ? "not-allowed" : "pointer"
         }}
       >
