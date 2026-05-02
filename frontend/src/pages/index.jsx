@@ -228,13 +228,22 @@ function CartPage({ cart, setCart, setPage }) {
 
         </div>
       ))}
-      <div style={{ position: "fixed", bottom: 75, left: 0, right: 0, width: "100%", padding: "12px 24px", background: "white", boxShadow: "0 -10px 30px rgba(0,0,0,0.05)", display: "flex", justifyContent: "center", gap: 30, alignItems: "center", zIndex: 90, borderTop: "1px solid #f0f3f8" }}>
-        <div style={{ textAlign: "right" }}>
-          <div style={{ fontSize: 12, color: "#64748b", fontWeight: 600 }}>Tổng thanh toán</div>
-          <div style={{ fontSize: 20, fontWeight: 800, color: "#00c896" }}>{fmt(total)}</div>
-        </div>
-        <button onClick={() => setPage("checkout")} className="btn-grad" style={{ padding: "14px 30px", fontSize: 15, fontWeight: 800, borderRadius: 15 }}>ĐẶT HÀNG NGAY</button>
+      <div style={{ position: "fixed", bottom: 85, left: 0, right: 0, width: "100%", padding: "10px 20px", background: "white", zIndex: 90, borderTop: "1px solid #f0f3f8", display: "flex", justifyContent: "center" }}>
+        <button 
+          onClick={() => setPage("checkout")} 
+          className="btn-grad" 
+          style={{ 
+            width: "100%", maxWidth: 500, height: 55, borderRadius: 30, border: "none", 
+            display: "flex", alignItems: "center", justifyContent: "space-between", 
+            padding: "0 30px", fontSize: 16, fontWeight: 800, color: "white",
+            boxShadow: "0 10px 25px rgba(0,200,150,0.3)", cursor: "pointer"
+          }}
+        >
+          <span>ĐẶT HÀNG NGAY</span>
+          <span style={{ fontSize: 18 }}>{fmt(total)}</span>
+        </button>
       </div>
+
 
     </div>
   );
