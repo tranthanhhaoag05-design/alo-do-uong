@@ -48,7 +48,7 @@ function StorePicker({ onSelect }) {
       .then(r => r.json()).then(data => { setStores(data); setLoading(false); }).catch(() => setLoading(false));
   }, []);
 
-  if (loading) return <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}><div style={{ display: "flex", gap: 6 }}>{[1,2,3].map(i => <div key={i} style={{ width: 10, height: 10, background: G, borderRadius: "50%", animation: "pulse 1.4s infinite", animationDelay: `${i*0.2}s` }} />)}</div><style>{`@keyframes pulse { 0%, 100% { transform: scale(0.6); opacity: 0.4; } 50% { transform: scale(1.2); opacity: 1; } }`}</style></div>;
+  if (loading) return <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}><div style={{ display: "flex", gap: 6 }}>{[1, 2, 3].map(i => <div key={i} style={{ width: 10, height: 10, background: G, borderRadius: "50%", animation: "pulse 1.4s infinite", animationDelay: `${i * 0.2}s` }} />)}</div><style>{`@keyframes pulse { 0%, 100% { transform: scale(0.6); opacity: 0.4; } 50% { transform: scale(1.2); opacity: 1; } }`}</style></div>;
 
   return (
     <div style={{ padding: "50px 20px" }}>
@@ -120,46 +120,46 @@ function HomePage({ cart, setCart, setToast, setPage, storeData, isOpen, onChang
           <div>
             <div style={{ fontSize: 12, color: "var(--muted)", fontWeight: 600 }}>Đang mua tại</div>
             <div style={{ fontSize: 20, fontWeight: 800, color: "#1a1a2e", display: "flex", alignItems: "center", gap: 6 }}>
-                {storeData.name}
-                <span style={{ fontSize: 11, background: isOpen ? "#d4f5e9" : "#ffe0e0", color: isOpen ? "#0a6e47" : "#b02020", padding: "3px 10px", borderRadius: 20, fontWeight: 700 }}>{isOpen ? "Mở cửa" : "Tạm nghỉ"}</span>
+              {storeData.name}
+              <span style={{ fontSize: 11, background: isOpen ? "#d4f5e9" : "#ffe0e0", color: isOpen ? "#0a6e47" : "#b02020", padding: "3px 10px", borderRadius: 20, fontWeight: 700 }}>{isOpen ? "Mở cửa" : "Tạm nghỉ"}</span>
             </div>
           </div>
         </div>
-        
+
         <div style={{ overflowX: "auto", display: "flex", gap: 10, paddingBottom: 5 }} className="no-scroll">
-            <button onClick={() => setActiveCat(0)} style={{ padding: "10px 22px", borderRadius: 50, border: "none", whiteSpace: "nowrap", background: activeCat === 0 ? G : "#f4f6fb", color: activeCat === 0 ? "white" : "var(--text)", fontWeight: 800, fontSize: 13, cursor: "pointer", transition: "0.2s" }}>🌟 Tất cả</button>
-            {categories.map(c => (
-                <button key={c.id} onClick={() => setActiveCat(c.id)} style={{ padding: "10px 22px", borderRadius: 50, border: "none", whiteSpace: "nowrap", background: activeCat === c.id ? G : "#f4f6fb", color: activeCat === c.id ? "white" : "var(--text)", fontWeight: 800, fontSize: 13, cursor: "pointer", transition: "0.2s" }}>
-                    {c.name}
-                </button>
-            ))}
+          <button onClick={() => setActiveCat(0)} style={{ padding: "10px 22px", borderRadius: 50, border: "none", whiteSpace: "nowrap", background: activeCat === 0 ? G : "#f4f6fb", color: activeCat === 0 ? "white" : "var(--text)", fontWeight: 800, fontSize: 13, cursor: "pointer", transition: "0.2s" }}>🌟 Tất cả</button>
+          {categories.map(c => (
+            <button key={c.id} onClick={() => setActiveCat(c.id)} style={{ padding: "10px 22px", borderRadius: 50, border: "none", whiteSpace: "nowrap", background: activeCat === c.id ? G : "#f4f6fb", color: activeCat === c.id ? "white" : "var(--text)", fontWeight: 800, fontSize: 13, cursor: "pointer", transition: "0.2s" }}>
+              {c.name}
+            </button>
+          ))}
         </div>
       </div>
 
       {/* Featured Suggestions */}
       {activeCat === 0 && (
         <div style={{ marginTop: 24 }}>
-            <div style={{ padding: "0 16px", marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <h2 style={{ fontSize: 19, fontWeight: 800 }}>✨ Gợi ý cho bạn</h2>
-                <span style={{ fontSize: 13, color: "var(--accent)", fontWeight: 700 }}>Xem tất cả</span>
-            </div>
-            <div style={{ display: "flex", gap: 16, overflowX: "auto", padding: "0 16px 15px" }} className="no-scroll">
-                {featured.map(p => (
-                    <div key={p.id} onClick={() => addToCart(p)} style={{ flexShrink: 0, width: 160, background: "white", borderRadius: 24, padding: 10, boxShadow: "0 4px 15px rgba(0,0,0,0.05)", border: "1px solid #f0f3f8" }}>
-                        <div style={{ height: 110, background: G_SOFT, borderRadius: 18, marginBottom: 10, overflow: "hidden" }}>
-                            <img src={p.image_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                        </div>
-                        <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4 }}>{p.name}</div>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                          <div style={{ fontWeight: 800, color: "var(--accent)" }}>{fmt(p.price)}</div>
-                          <div style={{ fontSize: 10, color: p.stock > 0 ? "#64748b" : "#ef4444", fontWeight: 700 }}>
-                            {p.stock > 0 ? `Còn: ${p.stock}` : "Hết"}
-                          </div>
-                        </div>
+          <div style={{ padding: "0 16px", marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <h2 style={{ fontSize: 19, fontWeight: 800 }}> Gợi ý cho bạn</h2>
+            <span style={{ fontSize: 13, color: "var(--accent)", fontWeight: 700 }}>Xem tất cả</span>
+          </div>
+          <div style={{ display: "flex", gap: 16, overflowX: "auto", padding: "0 16px 15px" }} className="no-scroll">
+            {featured.map(p => (
+              <div key={p.id} onClick={() => addToCart(p)} style={{ flexShrink: 0, width: 160, background: "white", borderRadius: 24, padding: 10, boxShadow: "0 4px 15px rgba(0,0,0,0.05)", border: "1px solid #f0f3f8" }}>
+                <div style={{ height: 110, background: G_SOFT, borderRadius: 18, marginBottom: 10, overflow: "hidden" }}>
+                  <img src={p.image_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                </div>
+                <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4 }}>{p.name}</div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div style={{ fontWeight: 800, color: "var(--accent)" }}>{fmt(p.price)}</div>
+                  <div style={{ fontSize: 10, color: p.stock > 0 ? "#64748b" : "#ef4444", fontWeight: 700 }}>
+                    {p.stock > 0 ? `Còn: ${p.stock}` : "Hết"}
+                  </div>
+                </div>
 
-                    </div>
-                ))}
-            </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
@@ -181,10 +181,10 @@ function HomePage({ cart, setCart, setToast, setPage, storeData, isOpen, onChang
                       {p.stock > 0 ? `Còn lại: ${p.stock}` : "Hết hàng"}
                     </div>
                   </div>
-                  <button 
+                  <button
                     onClick={(e) => { e.stopPropagation(); addToCart(p); }}
-                    style={{ 
-                      width: 35, height: 35, borderRadius: 12, border: "none", 
+                    style={{
+                      width: 35, height: 35, borderRadius: 12, border: "none",
                       background: p.stock > 0 ? G : "#cbd5e1", color: "white", fontWeight: 800,
                       cursor: p.stock > 0 ? "pointer" : "default"
                     }}
@@ -231,38 +231,38 @@ function CartPage({ cart, setCart, setPage, setToast }) {
             <div style={{ fontWeight: 700, fontSize: 17, color: "#1a1a2e" }}>{i.name}</div>
             <div style={{ color: "var(--accent)", fontWeight: 800, fontSize: 14, marginTop: 4 }}>{fmt(i.price)}</div>
             {/* Ghi chú sản phẩm */}
-            <input 
-              type="text" 
-              placeholder="Ghi chú..." 
+            <input
+              type="text"
+              placeholder="Ghi chú..."
               value={i.note || ""}
               onChange={(e) => {
                 const val = e.target.value;
                 setCart(prev => prev.map(item => item.id === i.id ? { ...item, note: val } : item));
               }}
-              style={{ 
+              style={{
                 width: "100%", padding: "4px 8px", marginTop: 6, fontSize: 11,
                 border: "1px solid #f0f3f8", borderRadius: 6, outline: "none",
                 background: "#f8fafc", color: "#64748b"
               }}
             />
           </div>
-          
+
           <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", justifyContent: "space-between", gap: 10 }}>
             <div style={{ fontWeight: 800, fontSize: 17, color: "#1a1a2e" }}>{fmt(i.price * i.qty)}</div>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <button 
-                onClick={() => updateQty(i.id, -1)} 
-                style={{ 
-                  width: 28, height: 28, borderRadius: 8, border: "1px solid #e2e8f0", 
+              <button
+                onClick={() => updateQty(i.id, -1)}
+                style={{
+                  width: 28, height: 28, borderRadius: 8, border: "1px solid #e2e8f0",
                   background: "#f8fafc", color: "#1e293b", fontWeight: 800, cursor: "pointer",
                   display: "flex", alignItems: "center", justifyContent: "center"
                 }}
               >-</button>
               <span style={{ fontWeight: 800, fontSize: 15, minWidth: 15, textAlign: "center" }}>{i.qty}</span>
-              <button 
-                onClick={() => updateQty(i.id, 1)} 
-                style={{ 
-                  width: 28, height: 28, borderRadius: 8, border: "none", 
+              <button
+                onClick={() => updateQty(i.id, 1)}
+                style={{
+                  width: 28, height: 28, borderRadius: 8, border: "none",
                   background: "#00c896", color: "white", fontWeight: 800, cursor: "pointer",
                   display: "flex", alignItems: "center", justifyContent: "center"
                 }}
@@ -273,25 +273,25 @@ function CartPage({ cart, setCart, setPage, setToast }) {
         </div>
       ))}
       <div style={{ position: "fixed", bottom: 85, left: 0, right: 0, width: "100%", padding: "10px 20px", background: "white", zIndex: 90, borderTop: "1px solid #f0f3f8", display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
-        
+
         {cart.reduce((s, i) => s + i.qty, 0) < 5 && (
           <div style={{ color: "#ef4444", fontSize: 13, fontWeight: 700 }}>
             ⚠️ Bạn cần chọn thêm {5 - cart.reduce((s, i) => s + i.qty, 0)} món nữa để giao hàng!
           </div>
         )}
 
-        <button 
+        <button
           onClick={() => {
             if (cart.reduce((s, i) => s + i.qty, 0) < 5) {
               alert("Bạn cần chọn tối thiểu 5 món để đặt hàng nhé!");
               return;
             }
             setPage("checkout");
-          }} 
-          className="btn-grad" 
-          style={{ 
-            width: "100%", maxWidth: 500, height: 55, borderRadius: 30, border: "none", 
-            display: "flex", alignItems: "center", justifyContent: "space-between", 
+          }}
+          className="btn-grad"
+          style={{
+            width: "100%", maxWidth: 500, height: 55, borderRadius: 30, border: "none",
+            display: "flex", alignItems: "center", justifyContent: "space-between",
             padding: "0 30px", fontSize: 16, fontWeight: 800, color: "white",
             boxShadow: "0 10px 25px rgba(0,200,150,0.3)", cursor: "pointer",
             opacity: cart.reduce((s, i) => s + i.qty, 0) < 5 ? 0.6 : 1,
@@ -324,18 +324,18 @@ function CheckoutPage({ cart, storeData, setPage, setToast, setOrders, isOpen })
     const R = 6371;
     const dLat = (uLat - storeData.latitude) * Math.PI / 180;
     const dLon = (uLng - storeData.longitude) * Math.PI / 180;
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(storeData.latitude * Math.PI/180) * Math.cos(uLat * Math.PI/180) * Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(storeData.latitude * Math.PI / 180) * Math.cos(uLat * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
   };
 
   const getLocation = () => {
     navigator.geolocation.getCurrentPosition(pos => {
-        const d = calculateDistance(pos.coords.latitude, pos.coords.longitude);
-        setDistance(d);
-        setShippingFee(d < 5 ? 0 : Math.round(d * 3000));
-        setGps(`${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`);
-        setToast("Đã xác định vị trí & phí ship! 📍");
+      const d = calculateDistance(pos.coords.latitude, pos.coords.longitude);
+      setDistance(d);
+      setShippingFee(d < 5 ? 0 : Math.round(d * 3000));
+      setGps(`${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`);
+      setToast("Đã xác định vị trí & phí ship! 📍");
     });
   };
 
@@ -345,14 +345,13 @@ function CheckoutPage({ cart, storeData, setPage, setToast, setOrders, isOpen })
 
   const handleSubmit = async () => {
     if (!isFormValid) {
-        setToast("⚠️ Bạn ơi, vui lòng điền đủ Họ tên, SĐT và Địa chỉ nhé!");
-        window.scrollTo(0,0);
+        alert("⚠️ Bạn ơi, vui lòng điền đầy đủ: Họ tên, Số điện thoại và Địa chỉ nhé!");
         return;
     }
     if (!isOpen) {
-        setToast("Quán đang tạm nghỉ, hẹn bạn lúc khác nhé!");
-        window.scrollTo(0,0);
-        return;
+      setToast("Quán đang tạm nghỉ, hẹn bạn lúc khác nhé!");
+      window.scrollTo(0, 0);
+      return;
     }
     setLoading(true);
     localStorage.setItem("alo_name", name);
@@ -379,9 +378,9 @@ function CheckoutPage({ cart, storeData, setPage, setToast, setOrders, isOpen })
       } else {
         setToast(data.error || "Lỗi đặt hàng!");
       }
-    } catch (e) { 
-      setToast("Lỗi kết nối máy chủ!"); 
-      window.scrollTo(0,0);
+    } catch (e) {
+      setToast("Lỗi kết nối máy chủ!");
+      window.scrollTo(0, 0);
     }
     setLoading(false);
   };
@@ -392,32 +391,32 @@ function CheckoutPage({ cart, storeData, setPage, setToast, setOrders, isOpen })
       <div style={{ background: "white", padding: 24, borderRadius: 24, display: "flex", flexDirection: "column", gap: 18, boxShadow: "0 8px 25px rgba(0,0,0,0.05)", border: "1px solid #f0f3f8" }}>
         <input className="input-field" placeholder="Họ tên của bạn" value={name} onChange={e => setName(e.target.value)} />
         <input className="input-field" placeholder="Số điện thoại" value={phone} onChange={e => setPhone(e.target.value)} />
-        
+
         <div style={{ display: "flex", gap: 10 }}>
-            <input className="input-field" placeholder="Vị trí GPS" value={gps} readOnly style={{ flex: 1, background: "#f8fafc", fontSize: 13 }} />
-            <button onClick={getLocation} className="btn-grad" style={{ padding: "0 18px", fontSize: 13, borderRadius: 16 }}>📍 Lấy GPS</button>
+          <input className="input-field" placeholder="Vị trí GPS" value={gps} readOnly style={{ flex: 1, background: "#f8fafc", fontSize: 13 }} />
+          <button onClick={getLocation} className="btn-grad" style={{ padding: "0 18px", fontSize: 13, borderRadius: 16 }}>📍 Lấy GPS</button>
         </div>
         <input className="input-field" placeholder="Địa chỉ chi tiết (Số nhà, đường...)" value={addr} onChange={e => setAddr(e.target.value)} />
       </div>
-      
+
       <div style={{ marginTop: 30, background: "white", padding: 24, borderRadius: 24, boxShadow: "0 8px 25px rgba(0,0,0,0.05)", border: "1px solid #f0f3f8" }}>
         <div style={{ fontWeight: 800, marginBottom: 18, fontSize: 18 }}>Tóm tắt đơn hàng</div>
         {cart.map(i => <div key={i.id} style={{ display: "flex", justifyContent: "space-between", marginBottom: 10, fontSize: 15 }}><span>{i.name} x{i.qty}</span><span style={{ fontWeight: 700 }}>{fmt(i.price * i.qty)}</span></div>)}
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: 12, fontSize: 15, color: "var(--muted)", fontWeight: 600 }}>
-            <span>Phí vận chuyển ({distance > 0 ? `${distance.toFixed(1)}km` : "Chưa định vị"})</span>
-            <span>{shippingFee === 0 ? "Miễn phí" : fmt(shippingFee)}</span>
+          <span>Phí vận chuyển ({distance > 0 ? `${distance.toFixed(1)}km` : "Chưa định vị"})</span>
+          <span>{shippingFee === 0 ? "Miễn phí" : fmt(shippingFee)}</span>
         </div>
         <div style={{ borderTop: "2px dashed #eee", marginTop: 15, paddingTop: 15, display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: 22 }}>
-            <span>Tổng cộng</span><span style={{ color: "var(--accent)" }}>{fmt(finalTotal)}</span>
+          <span>Tổng cộng</span><span style={{ color: "var(--accent)" }}>{fmt(finalTotal)}</span>
         </div>
       </div>
 
-      <button 
-        onClick={handleSubmit} 
-        disabled={loading || !isOpen} 
-        className="btn-grad" 
-        style={{ 
-          width: "100%", padding: 20, marginTop: 35, fontSize: 18, fontWeight: 800, 
+      <button
+        onClick={handleSubmit}
+        disabled={loading || !isOpen}
+        className="btn-grad"
+        style={{
+          width: "100%", padding: 20, marginTop: 35, fontSize: 18, fontWeight: 800,
           boxShadow: isOpen ? "0 10px 25px rgba(41,121,255,0.4)" : "none",
           opacity: isOpen ? 1 : 0.6,
           filter: isOpen ? "none" : "grayscale(0.8)",
@@ -464,6 +463,7 @@ export default function App() {
   const [storeData, setStoreData] = useState(null);
   const [toast, setToast] = useState("");
   const [showSplash, setShowSplash] = useState(true);
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
     const savedO = JSON.parse(localStorage.getItem("alo_orders") || "[]");
@@ -473,6 +473,10 @@ export default function App() {
     setStoreData(null);
     
     setTimeout(() => setShowSplash(false), 2000);
+    
+    // Đồng hồ chạy ngầm từng giây để kiểm tra giờ đóng/mở cửa thời gian thực
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
   }, []);
 
   const handleStoreSelect = (s) => {
@@ -485,36 +489,35 @@ export default function App() {
 
   const isOpen = () => {
     if (!storeData || !storeData.is_active) return false;
-    const now = new Date();
-    const cur = now.getHours() * 60 + now.getMinutes();
+    const cur = currentTime.getHours() * 60 + currentTime.getMinutes();
     const [oh, om] = (storeData.opening_time || "07:00").split(":").map(Number);
     const [ch, cm] = (storeData.closing_time || "22:00").split(":").map(Number);
-    
+
     const openMin = oh * 60 + om;
     const closeMin = ch * 60 + cm;
 
     if (closeMin < openMin) {
-        // Mở cửa xuyên đêm (VD: 07:00 đến 02:00 sáng hôm sau)
-        return cur >= openMin || cur <= closeMin;
+      // Mở cửa xuyên đêm (VD: 07:00 đến 02:00 sáng hôm sau)
+      return cur >= openMin || cur <= closeMin;
     } else {
-        // Mở cửa trong ngày (VD: 07:00 đến 22:00)
-        return cur >= openMin && cur <= closeMin;
+      // Mở cửa trong ngày (VD: 07:00 đến 22:00)
+      return cur >= openMin && cur <= closeMin;
     }
   };
 
   if (showSplash) return (
     <div style={{ minHeight: "100vh", background: G, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "white" }}>
-        <style>{globalStyle}</style>
-        <div style={{ fontSize: 80, marginBottom: 25, animation: "bounce 2s infinite" }}>🧉</div>
-        <h1 style={{ fontSize: 36, fontWeight: 800, letterSpacing: "-1px" }}>Alo Đồ Uống</h1>
-        <style>{`@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }`}</style>
+      <style>{globalStyle}</style>
+      <div style={{ fontSize: 80, marginBottom: 25, animation: "bounce 2s infinite" }}>🧉</div>
+      <h1 style={{ fontSize: 36, fontWeight: 800, letterSpacing: "-1px" }}>Alo Đồ Uống</h1>
+      <style>{`@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }`}</style>
     </div>
   );
 
   if (!storeData) return (
     <div className="app-shell">
-        <style>{globalStyle}</style>
-        <StorePicker onSelect={handleStoreSelect} />
+      <style>{globalStyle}</style>
+      <StorePicker onSelect={handleStoreSelect} />
     </div>
   );
 
@@ -530,8 +533,8 @@ export default function App() {
       {page === "checkout" && <CheckoutPage cart={cart} storeData={storeData} setPage={setPage} setToast={handleToast} setOrders={setOrders} isOpen={isOpen()} />}
       {page === "history" && <HistoryPage orders={orders} />}
 
-      <nav className="bottom-nav" style={{ 
-        height: 75, background: "#fff", borderTop: "1px solid #f0f2f8", 
+      <nav className="bottom-nav" style={{
+        height: 75, background: "#fff", borderTop: "1px solid #f0f2f8",
         display: "flex", justifyContent: "space-around", alignItems: "center",
         boxShadow: "0 -5px 20px rgba(0,0,0,0.03)"
       }}>
