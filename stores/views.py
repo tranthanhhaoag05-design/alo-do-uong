@@ -76,8 +76,13 @@ class CategoryListAPI(generics.ListCreateAPIView):
     def get_queryset(self):
         store_id = self.request.query_params.get('store')
         if store_id:
-            return Category.objects.filter(store_id=store_id)
+            return Category.objects.filter(store_id=store_id).order_by('-id')
         return Category.objects.none()
+
+    def perform_create(self, serializer):
+        # Khi tạo, nếu frontend gửi store id lên thì dùng, không thì có thể báo lỗi
+        serializer.save()
+
 
 class CategoryDetailAPI(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [AllowAny]

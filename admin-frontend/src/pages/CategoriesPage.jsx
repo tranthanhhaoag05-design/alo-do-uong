@@ -34,14 +34,14 @@ export default function CategoriesPage() {
   const handleAdd = async (e) => {
     e.preventDefault();
     const storeId = localStorage.getItem("store_id");
-    
+
     if (!storeId) {
-      alert("❌ Lỗi: Không tìm thấy ID cửa hàng. Vui lòng ĐĂNG XUẤT và ĐĂNG NHẬP lại!");
+      alert("Lỗi: Không tìm thấy ID cửa hàng. Vui lòng ĐĂNG XUẤT và ĐĂNG NHẬP lại!");
       return;
     }
 
     if (!newName.trim()) {
-      alert("⚠️ Vui lòng nhập tên danh mục!");
+      alert("Vui lòng nhập tên danh mục!");
       return;
     }
 
@@ -56,10 +56,10 @@ export default function CategoriesPage() {
         fetchCategories();
       } else {
         const errData = await res.json();
-        alert("❌ Lỗi từ máy chủ: " + JSON.stringify(errData));
+        alert("Lỗi từ máy chủ: " + JSON.stringify(errData));
       }
     } catch (error) {
-      alert("❌ Lỗi kết nối máy chủ khi thêm danh mục");
+      alert("Lỗi kết nối máy chủ khi thêm danh mục");
     }
   };
 
@@ -167,6 +167,13 @@ export default function CategoriesPage() {
           </div>
         )}
       </div>
+
+      {/* Debug Info (Dòng này giúp bạn kiểm tra lỗi) */}
+      <div style={{ marginTop: 40, padding: 15, background: "#f8fafc", borderRadius: 10, fontSize: 12, color: "#64748b", textAlign: "center", border: "1px dashed #cbd5e1" }}>
+        Đang quản lý Cửa hàng ID: <span style={{ fontWeight: 800, color: "#2563eb" }}>{localStorage.getItem("store_id") || "CHƯA CÓ (Hãy đăng nhập lại!)"}</span> | 
+        Máy chủ: <span style={{ fontWeight: 600 }}>alo-do-uong-xzcc.onrender.com</span>
+      </div>
     </div>
   );
 }
+
