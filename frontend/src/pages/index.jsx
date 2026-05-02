@@ -341,10 +341,11 @@ function CheckoutPage({ cart, storeData, setPage, setToast, setOrders, isOpen })
 
   const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const finalTotal = total + shippingFee;
+  const isFormValid = name.trim() && phone.trim() && addr.trim();
 
   const handleSubmit = async () => {
-    if (!name || !phone || !addr) return setToast("Vui lòng điền đủ thông tin!");
-    if (!isOpen) return setToast("Quán đang tạm nghỉ!");
+    if (!isFormValid) return setToast("⚠️ Bạn ơi, vui lòng điền đủ Họ tên, SĐT và Địa chỉ nhé!");
+    if (!isOpen) return setToast("Quán đang tạm nghỉ, hẹn bạn lúc khác nhé!");
     setLoading(true);
     localStorage.setItem("alo_name", name);
     localStorage.setItem("alo_phone", phone);
@@ -352,7 +353,7 @@ function CheckoutPage({ cart, storeData, setPage, setToast, setOrders, isOpen })
 
     const payload = {
       store: storeData.id, customer_name: name, customer_phone: phone, address: `${addr} (GPS: ${gps})`,
-      total_price: finalTotal, items: cart.map(i => ({ product_name: i.name, quantity: i.qty, price: i.price }))
+      total_price: finalTotal, items: cart.map(i => ({ product_name: i.name, quantity: i.qty, price: i.price, note: i.note }))
     };
 
     try {
@@ -371,7 +372,6 @@ function CheckoutPage({ cart, storeData, setPage, setToast, setOrders, isOpen })
         setToast(data.error || "Lỗi đặt hàng!");
       }
     } catch (e) { setToast("Lỗi kết nối máy chủ!"); }
-
     setLoading(false);
   };
 
@@ -401,14 +401,26 @@ function CheckoutPage({ cart, storeData, setPage, setToast, setOrders, isOpen })
         </div>
       </div>
 
-      <button onClick={handleSubmit} disabled={loading} className="btn-grad" style={{ width: "100%", padding: 20, marginTop: 35, fontSize: 18, fontWeight: 800, boxShadow: "0 10px 25px rgba(41,121,255,0.4)" }}>
+      <button 
+        onClick={handleSubmit} 
+        disabled={loading} 
+        className="btn-grad" 
+        style={{ 
+          width: "100%", padding: 20, marginTop: 35, fontSize: 18, fontWeight: 800, 
+          boxShadow: isFormValid ? "0 10px 25px rgba(41,121,255,0.4)" : "none",
+          opacity: isFormValid ? 1 : 0.6,
+          filter: isFormValid ? "none" : "grayscale(0.5)"
+        }}
+      >
         {loading ? "ĐANG XỬ LÝ..." : "XÁC NHẬN ĐẶT HÀNG"}
       </button>
     </div>
   );
 }
 
+
 // ─── HISTORY PAGE ─────────────────────────────────────────────────────────────
+
 function HistoryPage({ orders }) {
   if (orders.length === 0) return <div style={{ padding: 120, textAlign: "center" }}><div style={{ fontSize: 70 }}>📜</div><div style={{ fontWeight: 800, fontSize: 20, marginTop: 15 }}>Chưa có đơn hàng nào</div><button onClick={() => window.location.reload()} className="btn-grad" style={{ padding: "10px 20px", marginTop: 20 }}>Tải lại trang</button></div>;
   return (
