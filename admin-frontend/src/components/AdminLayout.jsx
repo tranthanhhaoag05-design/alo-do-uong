@@ -13,6 +13,13 @@ const NAV_ITEMS = [
 
 function Sidebar({ collapsed, setCollapsed, storeName }) {
   const location = useLocation();
+  const [showMenu, setShowMenu] = useState(false);
+
+  const handleLogout = () => {
+    localStorage.removeItem("admin_token");
+    localStorage.removeItem("admin_user");
+    window.location.reload(); // Refresh to trigger redirect to login
+  };
 
   return (
     <aside
@@ -27,7 +34,7 @@ function Sidebar({ collapsed, setCollapsed, storeName }) {
         transition: "width 0.25s cubic-bezier(.4,0,.2,1)",
         overflow: "hidden",
         flexShrink: 0,
-        zIndex: 10,
+        zIndex: 100,
       }}
     >
       {/* Logo */}
@@ -123,44 +130,97 @@ function Sidebar({ collapsed, setCollapsed, storeName }) {
         })}
       </nav>
 
-      {/* User */}
-      <div
-        style={{
-          padding: collapsed ? "16px 0" : "16px 16px",
-          borderTop: "1px solid #1e2531",
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          justifyContent: collapsed ? "center" : "flex-start",
-        }}
-      >
-        <div
-          style={{
-            width: 32,
-            height: 32,
-            borderRadius: "50%",
-            background: "linear-gradient(135deg, #4f9cf9, #2563eb)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 13,
-            fontWeight: 700,
-            color: "#fff",
-            flexShrink: 0,
-          }}
-        >
-          AD
-        </div>
-        {!collapsed && (
-          <div>
-            <div style={{ color: "#e6eaf3", fontSize: 12.5, fontWeight: 600 }}>Admin chính</div>
-            <div style={{ color: "#4a5568", fontSize: 11 }}>Quản lý hệ thống</div>
+      {/* User with Logout Menu */}
+      <div style={{ position: "relative" }}>
+        {showMenu && (
+          <div 
+            style={{
+              position: "absolute",
+              bottom: "calc(100% + 10px)",
+              left: 10,
+              right: 10,
+              background: "rgba(22, 27, 34, 0.95)",
+              backdropFilter: "blur(10px)",
+              border: "1px solid #30363d",
+              borderRadius: 12,
+              padding: "8px",
+              boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+              zIndex: 200,
+            }}
+          >
+            <button
+              onClick={handleLogout}
+              style={{
+                width: "100%",
+                padding: "10px",
+                textAlign: "left",
+                background: "transparent",
+                border: "none",
+                color: "#ff7b72",
+                fontSize: 13.5,
+                fontWeight: 600,
+                cursor: "pointer",
+                borderRadius: 8,
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                transition: "background 0.2s",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255, 123, 114, 0.1)")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+            >
+              <span>🚪</span> Đăng xuất
+            </button>
           </div>
         )}
+
+        <div
+          onClick={() => setShowMenu(!showMenu)}
+          style={{
+            padding: collapsed ? "16px 0" : "16px 16px",
+            borderTop: "1px solid #1e2531",
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            justifyContent: collapsed ? "center" : "flex-start",
+            cursor: "pointer",
+            transition: "background 0.2s",
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = "#161b22")}
+          onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+        >
+          <div
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: "50%",
+              background: "linear-gradient(135deg, #4f9cf9, #2563eb)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 13,
+              fontWeight: 700,
+              color: "#fff",
+              flexShrink: 0,
+            }}
+          >
+            AD
+          </div>
+          {!collapsed && (
+            <div style={{ flex: 1 }}>
+              <div style={{ color: "#e6eaf3", fontSize: 12.5, fontWeight: 600 }}>Admin chính</div>
+              <div style={{ color: "#4a5568", fontSize: 11 }}>Quản lý hệ thống</div>
+            </div>
+          )}
+          {!collapsed && (
+            <span style={{ color: "#8891a4", fontSize: 10 }}>{showMenu ? "▼" : "▲"}</span>
+          )}
+        </div>
       </div>
     </aside>
   );
 }
+
 
 export default function AdminLayout() {
   const [collapsed, setCollapsed] = useState(false);
