@@ -215,12 +215,39 @@ class RevenueStatsAPI(APIView):
         rev = orders.aggregate(total=Sum('total_price'))['total'] or 0
         cost = OrderItem.objects.filter(order__in=orders).aggregate(total=Sum(F('quantity') * F('cost_price')))['total'] or 0
         
+        now = timezone.now()
+        chart_data = []
+        detailed_stats = []
+
+        for i in range(6, -1, -1):
+            target_date = (now - timedelta(days=i)).date()
+            daily_orders = orders.filter(created_at__date=target_date)
+            daily_rev = daily_orders.aggregate(total=Sum('total_price'))['total'] or 0
+            daily_cost = OrderItem.objects.filter(order__in=daily_orders).aggregate(total=Sum(F('quantity') * F('cost_price')))['total'] or 0
+            daily_profit = daily_rev - daily_cost
+            margin = f"{int((daily_profit / daily_rev) * 100)}%" if daily_rev > 0 else "0%"
+            
+            day_str = target_date.strftime('%d/%m')
+            chart_data.append({"name": day_str, "profit": daily_profit})
+            
+            if daily_rev > 0 or daily_cost > 0:
+                detailed_stats.append({
+                    "date": target_date.strftime('%d/%m/%Y'),
+                    "revenue": f"{daily_rev:,}₫",
+                    "cost": f"{daily_cost:,}₫",
+                    "profit": f"{daily_profit:,}₫",
+                    "margin": margin
+                })
+                
+        detailed_stats.reverse()
+        
         return Response({
             "metrics": [
                 {"label": "Tổng doanh thu", "value": f"{rev:,}₫", "delta": "0%", "up": True},
                 {"label": "Lợi nhuận", "value": f"{(rev-cost):,}₫", "delta": "0%", "up": True},
             ],
-            "chart_data": [], "detailed_stats": []
+            "chart_data": chart_data,
+            "detailed_stats": detailed_stats
         })
 
 class CustomerListAPI(generics.ListAPIView):
