@@ -483,7 +483,7 @@ export default function App() {
   const handleToast = (m) => { setToast(m); setTimeout(() => setToast(""), 2500); };
 
   const isOpen = () => {
-    if (!storeData || !storeData.is_active || !storeData.is_open) return false;
+    if (!storeData || !storeData.is_active) return false;
     const now = new Date();
     const cur = now.getHours() * 60 + now.getMinutes();
     const [oh, om] = (storeData.opening_time || "07:00").split(":").map(Number);
