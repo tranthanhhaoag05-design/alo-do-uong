@@ -19,7 +19,7 @@ export default function ProductFormPage() {
   // Load danh mục
   useEffect(() => {
     const storeId = localStorage.getItem("store_id");
-    fetch(`https://alo-do-uong-xzcc.onrender.com/api/categories/?store=${storeId}`)
+    fetch(`https://alo-do-uong.onrender.com/api/categories/?store=${storeId}`)
       .then(res => res.json())
       .then(data => {
         setCategories(data);
@@ -34,7 +34,7 @@ export default function ProductFormPage() {
   // Load dữ liệu khi vào trang sửa (Edit mode)
   useEffect(() => {
     if (id) {
-      fetch(`https://alo-do-uong-xzcc.onrender.com/api/products/${id}/`)
+      fetch(`https://alo-do-uong.onrender.com/api/products/${id}/`)
         .then(res => res.json())
         .then(product => {
           if (product) {
@@ -78,8 +78,8 @@ export default function ProductFormPage() {
 
     try {
       const url = id 
-        ? `https://alo-do-uong-xzcc.onrender.com/api/products/${id}/`
-        : `https://alo-do-uong-xzcc.onrender.com/api/products/`;
+        ? `https://alo-do-uong.onrender.com/api/products/${id}/`
+        : `https://alo-do-uong.onrender.com/api/products/`;
 
       const method = id ? "PUT" : "POST";
       

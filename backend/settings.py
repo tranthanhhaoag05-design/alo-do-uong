@@ -129,13 +129,15 @@ CORS_ALLOW_CREDENTIALS = True
 
 # QUAN TRỌNG: Mở rộng quyền truy cập để không bị chặn
 CSRF_TRUSTED_ORIGINS = [
-    "https://*.vercel.app",
-    "https://*.onrender.com",
+    "https://alo-do-uong.vercel.app",
+    "https://alo-do-uong.onrender.com",
+    "https://alo-do-uong-xzcc.onrender.com",
     "http://localhost:3000",
     "http://localhost:5173",
 ]
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['alo-do-uong.onrender.com', 'alo-do-uong-xzcc.onrender.com', 'localhost', '127.0.0.1', '*']
+
 
 
 

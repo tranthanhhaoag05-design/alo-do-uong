@@ -18,7 +18,7 @@ export default function LoginPage({ onLogin }) {
 
     const endpoint = isRegister ? "register" : "login";
     try {
-      const response = await fetch(`https://alo-do-uong-xzcc.onrender.com/api/admin/${endpoint}/`, {
+      const response = await fetch(`https://alo-do-uong.onrender.com/api/admin/${endpoint}/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password, phone })

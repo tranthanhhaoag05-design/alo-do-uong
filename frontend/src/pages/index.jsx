@@ -44,7 +44,7 @@ function StorePicker({ onSelect }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("https://alo-do-uong-xzcc.onrender.com/api/stores/")
+    fetch("https://alo-do-uong.onrender.com/api/stores/")
       .then(r => r.json()).then(data => { setStores(data); setLoading(false); }).catch(() => setLoading(false));
   }, []);
 
@@ -81,10 +81,10 @@ function HomePage({ cart, setCart, setToast, setPage, storeData, isOpen, onChang
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`https://alo-do-uong-xzcc.onrender.com/api/categories/?store=${storeData.id}`)
+    fetch(`https://alo-do-uong.onrender.com/api/categories/?store=${storeData.id}`)
       .then(r => r.json()).then(data => setCategories(data)).catch(e => console.error(e));
 
-    fetch(`https://alo-do-uong-xzcc.onrender.com/api/products/?store=${storeData.id}&active=true`)
+    fetch(`https://alo-do-uong.onrender.com/api/products/?store=${storeData.id}&active=true`)
       .then(r => r.json()).then(data => { setProducts(data); setLoading(false); }).catch(() => setLoading(false));
   }, [storeData]);
 
@@ -252,7 +252,7 @@ function CheckoutPage({ cart, storeData, setPage, setToast, setOrders, isOpen })
     };
 
     try {
-      const res = await fetch("https://alo-do-uong-xzcc.onrender.com/api/orders/create/", {
+      const res = await fetch("https://alo-do-uong.onrender.com/api/orders/create/", {
         method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload)
       });
       const data = await res.json();

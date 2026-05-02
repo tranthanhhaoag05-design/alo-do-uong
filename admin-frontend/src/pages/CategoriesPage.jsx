@@ -7,7 +7,7 @@ export default function CategoriesPage() {
   const [editName, setEditName] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const BASE_URL = "https://alo-do-uong-xzcc.onrender.com/api/categories/";
+  const BASE_URL = "https://alo-do-uong.onrender.com/api/categories/";
 
   useEffect(() => {
     fetchCategories();
@@ -171,7 +171,7 @@ export default function CategoriesPage() {
       {/* Debug Info (Dòng này giúp bạn kiểm tra lỗi) */}
       <div style={{ marginTop: 40, padding: 15, background: "#f8fafc", borderRadius: 10, fontSize: 12, color: "#64748b", textAlign: "center", border: "1px dashed #cbd5e1" }}>
         Đang quản lý Cửa hàng ID: <span style={{ fontWeight: 800, color: "#2563eb" }}>{localStorage.getItem("store_id") || "CHƯA CÓ (Hãy đăng nhập lại!)"}</span> | 
-        Máy chủ: <span style={{ fontWeight: 600 }}>alo-do-uong-xzcc.onrender.com</span>
+        Máy chủ: <span style={{ fontWeight: 600 }}>alo-do-uong.onrender.com</span>
       </div>
     </div>
   );
