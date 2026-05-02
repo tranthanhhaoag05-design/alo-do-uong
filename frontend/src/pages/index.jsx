@@ -443,32 +443,41 @@ function CheckoutPage({ cart, storeData, setPage, setToast, setOrders, isOpen, c
 // ─── HISTORY PAGE ─────────────────────────────────────────────────────────────
 
 function HistoryPage({ orders, isSyncing }) {
+  const getStatusStyle = (s) => {
+    switch(s) {
+      case "Hoàn thành": return { bg: "#d4f5e9", color: "#0a6e47" };
+      case "Đã hủy": return { bg: "#ffe0e0", color: "#b02020" };
+      case "Đang giao": return { bg: "#fff0cc", color: "#8a5d00" };
+      case "Đang xử lý": return { bg: "#f3e8ff", color: "#6b21a8" };
+      case "Chờ xác nhận":
+      case "Chờ xử lý": return { bg: "#deeeff", color: "#0d4a8a" };
+      default: return { bg: "#f1f5f9", color: "#64748b" };
+    }
+  };
+
   if (orders.length === 0) return <div style={{ padding: 120, textAlign: "center" }}><div style={{ fontSize: 70 }}>📜</div><div style={{ fontWeight: 800, fontSize: 20, marginTop: 15 }}>Chưa có đơn hàng nào</div><button onClick={() => window.location.reload()} className="btn-grad" style={{ padding: "10px 20px", marginTop: 20 }}>Tải lại trang</button></div>;
   return (
     <div style={{ padding: "24px 16px 120px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 25 }}>
         <h2 style={{ margin: 0, fontWeight: 800, fontSize: 24 }}>📜 Lịch sử mua hàng</h2>
-        {isSyncing && <span style={{ fontSize: 11, color: "var(--accent)", fontWeight: 700, animation: "pulse 1.5s infinite" }}>ĐANG CẬP NHẬT...</span>}
+        {isSyncing && <span style={{ fontSize: 10, color: "var(--accent)", fontWeight: 700, animation: "pulse 1.5s infinite" }}>🔄 ĐANG CẬP NHẬT...</span>}
       </div>
-      {orders.map((o, idx) => (
-        <div key={idx} style={{ background: "white", padding: 20, borderRadius: 24, marginBottom: 16, boxShadow: "0 4px 15px rgba(0,0,0,0.04)", border: "1px solid #f0f3f8" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
-            <span style={{ fontWeight: 800, fontSize: 17 }}>Đơn #{o.order_code}</span>
-            <span style={{ 
-              background: o.status === "Hoàn thành" ? "#d4f5e9" : o.status === "Đã hủy" ? "#ffe0e0" : "#deeeff", 
-              color: o.status === "Hoàn thành" ? "#0a6e47" : o.status === "Đã hủy" ? "#b02020" : "#0d4a8a", 
-              padding: "4px 14px", borderRadius: 20, fontSize: 12, fontWeight: 800 
-            }}>
-              {o.status}
-            </span>
+      {orders.map((o, idx) => {
+        const style = getStatusStyle(o.status);
+        return (
+          <div key={idx} style={{ background: "white", padding: 20, borderRadius: 24, marginBottom: 16, boxShadow: "0 4px 15px rgba(0,0,0,0.04)", border: "1px solid #f0f3f8" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
+              <span style={{ fontWeight: 800, fontSize: 17 }}>Đơn #{o.order_code}</span>
+              <span style={{ background: style.bg, color: style.color, padding: "4px 14px", borderRadius: 20, fontSize: 12, fontWeight: 800 }}>{o.status}</span>
+            </div>
+            <div style={{ fontSize: 13, color: "var(--muted)", fontWeight: 500 }}>{o.date}</div>
+            <div style={{ marginTop: 15, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: 14, color: "#1a1a2e", fontWeight: 600 }}>{o.items?.reduce((s, i) => s + i.qty, 0)} ly</span>
+              <span style={{ fontWeight: 800, color: "var(--accent)", fontSize: 19 }}>{fmt(o.totalPrice)}</span>
+            </div>
           </div>
-          <div style={{ fontSize: 13, color: "var(--muted)", fontWeight: 500 }}>{o.date}</div>
-          <div style={{ marginTop: 15, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ fontSize: 14, color: "#1a1a2e", fontWeight: 600 }}>{o.items?.reduce((s, i) => s + i.qty, 0)} ly</span>
-            <span style={{ fontWeight: 800, color: "var(--accent)", fontSize: 19 }}>{fmt(o.totalPrice)}</span>
-          </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -495,7 +504,20 @@ export default function App() {
     setTimeout(() => setShowSplash(false), 2000);
     
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer);
+    
+    // Tự động đồng bộ trạng thái đơn hàng mỗi 10 giây khi đang ở trang lịch sử
+    let syncTimer;
+    if (page === "history") {
+      syncTimer = setInterval(() => {
+        const currentO = JSON.parse(localStorage.getItem("alo_orders") || "[]");
+        syncOrders(currentO);
+      }, 10000);
+    }
+
+    return () => {
+      clearInterval(timer);
+      if (syncTimer) clearInterval(syncTimer);
+    };
   }, [page]);
 
   const syncOrders = async (list) => {
