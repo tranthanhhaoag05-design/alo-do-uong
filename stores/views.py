@@ -178,29 +178,38 @@ class DashboardStatsAPI(APIView):
         if not store_id: return Response({"error": "Missing store_id"}, status=400)
         
         now = timezone.now()
-        today = now.replace(hour=0, minute=0, second=0)
+        today = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        yesterday = today - timedelta(days=1)
         
-        today_rev = Order.objects.filter(store_id=store_id, created_at__gte=today).aggregate(total=Sum('total_price'))['total'] or 0
+        # 1. Metrics
+        today_rev = Order.objects.filter(store_id=store_id, created_at__gte=today, status__in=['Hoàn thành', 'Chờ xử lý', 'Đang giao']).aggregate(total=Sum('total_price'))['total'] or 0
+        yesterday_rev = Order.objects.filter(store_id=store_id, created_at__gte=yesterday, created_at__lt=today, status__in=['Hoàn thành', 'Chờ xử lý', 'Đang giao']).aggregate(total=Sum('total_price'))['total'] or 0
+        
+        rev_delta = "100%" if yesterday_rev == 0 else f"{int((today_rev - yesterday_rev) / yesterday_rev * 100)}%"
         new_orders = Order.objects.filter(store_id=store_id, status="Chờ xử lý").count()
         
+        # 2. Weekly Chart
         weekly_values = []
         days_labels = []
         for i in range(6, -1, -1):
             date = (now - timedelta(days=i)).date()
-            val = Order.objects.filter(store_id=store_id, created_at__date=date).aggregate(total=Sum('total_price'))['total'] or 0
+            val = Order.objects.filter(store_id=store_id, created_at__date=date, status__in=['Hoàn thành', 'Chờ xử lý', 'Đang giao']).aggregate(total=Sum('total_price'))['total'] or 0
             weekly_values.append(val)
             days_labels.append(date.strftime('%d/%m'))
 
+        # 3. Top Products
         top_items = OrderItem.objects.filter(order__store_id=store_id).values('product_name').annotate(total=Sum('quantity')).order_by('-total')[:5]
-        top_products = [{"name": i['product_name'], "sales": i['total'], "pct": 100} for i in top_items]
+        max_sales = max([i['total'] for i in top_items], default=1)
+        top_products = [{"name": i['product_name'], "sales": i['total'], "pct": int(i['total']/max_sales*100)} for i in top_items]
 
+        # 4. Recent Orders
         recent = Order.objects.filter(store_id=store_id).order_by('-created_at')[:5]
-        recent_data = [{"id": f"#{o.order_code}", "customer": o.customer_name, "product": "Đơn hàng", "qty": 1, "total": f"{o.total_price:,}₫", "status": o.status} for o in recent]
+        recent_data = [{"id": f"#{o.order_code}", "customer": o.customer_name, "product": "Đơn hàng", "qty": o.items.count(), "total": f"{o.total_price:,}₫", "status": o.status} for o in recent]
 
         return Response({
             "metrics": [
-                {"label": "Doanh thu hôm nay", "value": f"{today_rev:,}", "unit": "₫", "delta": "0%", "up": True, "color": "#00c896"},
-                {"label": "Đơn mới", "value": str(new_orders), "unit": "đơn", "delta": "0%", "up": True, "color": "#2563eb"},
+                {"label": "Doanh thu hôm nay", "value": f"{today_rev:,}", "unit": "₫", "delta": rev_delta, "up": today_rev >= yesterday_rev, "color": "#00c896"},
+                {"label": "Đơn mới", "value": str(new_orders), "unit": "đơn", "delta": "Mới", "up": True, "color": "#2563eb"},
             ],
             "weekly": { "values": weekly_values, "days": days_labels, "total": sum(weekly_values) },
             "top_products": top_products,
@@ -211,43 +220,43 @@ class RevenueStatsAPI(APIView):
     def get(self, request):
         store_id = request.query_params.get('store')
         if not store_id: return Response({"error": "Missing store_id"}, status=400)
-        orders = Order.objects.filter(store_id=store_id, status='Hoàn thành')
-        rev = orders.aggregate(total=Sum('total_price'))['total'] or 0
-        cost = OrderItem.objects.filter(order__in=orders).aggregate(total=Sum(F('quantity') * F('cost_price')))['total'] or 0
         
+        # Mặc định lấy 30 ngày gần nhất
         now = timezone.now()
+        start_date = now - timedelta(days=30)
+        
+        orders = Order.objects.filter(store_id=store_id, status='Hoàn thành', created_at__gte=start_date)
+        total_rev = orders.aggregate(total=Sum('total_price'))['total'] or 0
+        total_cost = OrderItem.objects.filter(order__in=orders).aggregate(total=Sum(F('quantity') * F('cost_price')))['total'] or 0
+        total_profit = total_rev - total_cost
+        
+        # Dữ liệu biểu đồ & Bảng chi tiết
         chart_data = []
         detailed_stats = []
-
-        for i in range(6, -1, -1):
-            target_date = (now - timedelta(days=i)).date()
-            daily_orders = orders.filter(created_at__date=target_date)
-            daily_rev = daily_orders.aggregate(total=Sum('total_price'))['total'] or 0
-            daily_cost = OrderItem.objects.filter(order__in=daily_orders).aggregate(total=Sum(F('quantity') * F('cost_price')))['total'] or 0
-            daily_profit = daily_rev - daily_cost
-            margin = f"{int((daily_profit / daily_rev) * 100)}%" if daily_rev > 0 else "0%"
+        for i in range(29, -1, -1):
+            date = (now - timedelta(days=i)).date()
+            day_orders = orders.filter(created_at__date=date)
+            rev = day_orders.aggregate(total=Sum('total_price'))['total'] or 0
+            cost = OrderItem.objects.filter(order__in=day_orders).aggregate(total=Sum(F('quantity') * F('cost_price')))['total'] or 0
+            profit = rev - cost
             
-            day_str = target_date.strftime('%d/%m')
-            chart_data.append({"name": day_str, "profit": daily_profit})
-            
-            if daily_rev > 0 or daily_cost > 0:
+            chart_data.append({"name": date.strftime('%d/%m'), "value": profit})
+            if rev > 0:
                 detailed_stats.append({
-                    "date": target_date.strftime('%d/%m/%Y'),
-                    "revenue": f"{daily_rev:,}₫",
-                    "cost": f"{daily_cost:,}₫",
-                    "profit": f"{daily_profit:,}₫",
-                    "margin": margin
+                    "date": date.strftime('%d/%m/%Y'),
+                    "revenue": f"{rev:,}₫",
+                    "cost": f"{cost:,}₫",
+                    "profit": f"{profit:,}₫",
+                    "margin": f"{int(profit/rev*100)}%" if rev > 0 else "0%"
                 })
-                
-        detailed_stats.reverse()
-        
+
         return Response({
             "metrics": [
-                {"label": "Tổng doanh thu", "value": f"{rev:,}₫", "delta": "0%", "up": True},
-                {"label": "Lợi nhuận", "value": f"{(rev-cost):,}₫", "delta": "0%", "up": True},
+                {"label": "Tổng doanh thu (30 ngày)", "value": f"{total_rev:,}₫", "delta": "Ổn định", "up": True},
+                {"label": "Lợi nhuận ròng", "value": f"{total_profit:,}₫", "delta": f"{int(total_profit/total_rev*100) if total_rev>0 else 0}%", "up": True},
             ],
             "chart_data": chart_data,
-            "detailed_stats": detailed_stats
+            "detailed_stats": detailed_stats[::-1] # Mới nhất lên đầu
         })
 
 class CustomerListAPI(generics.ListAPIView):
