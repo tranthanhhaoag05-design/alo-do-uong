@@ -18,18 +18,18 @@ export default function ProductFormPage() {
 
   // Load danh mục
   useEffect(() => {
-    fetch(`https://alo-do-uong.onrender.com/api/stores/?store=${localStorage.getItem("store_id")}`)
+    const storeId = localStorage.getItem("store_id");
+    fetch(`https://alo-do-uong.onrender.com/api/categories/?store=${storeId}`)
       .then(res => res.json())
       .then(data => {
-        if (data.length > 0) {
-          // Lấy categories của store đầu tiên (id=1)
-          fetch(`https://alo-do-uong.onrender.com/api/products/?store=1`) // Giả định store id=1
-          // Thực ra nên có API lấy danh mục riêng, nhưng tạm thời dùng mock hoặc fetch từ Product
+        setCategories(data);
+        if (data.length > 0 && !id) {
+          setCategory(data[0].id.toString());
         }
-      });
-    
-    // FETCH DANH MỤC THẬT (Nếu có API) - Tạm thời tôi sẽ cho phép nhập ID hoặc để mặc định 1
-  }, []);
+      })
+      .catch(err => console.error("Lỗi lấy danh mục:", err));
+  }, [id]);
+
 
   // Load dữ liệu khi vào trang sửa (Edit mode)
   useEffect(() => {
@@ -63,10 +63,11 @@ export default function ProductFormPage() {
   const handleSave = async () => {
     if (!name || !price || !costPrice) return alert("Vui lòng điền đủ thông tin bắt buộc!");
     
+    const storeId = localStorage.getItem("store_id");
     const formData = new FormData();
     formData.append("name", name);
     formData.append("category", category);
-    formData.append("store", 1);
+    formData.append("store", storeId);
     formData.append("cost_price", costPrice);
     formData.append("price", price);
     formData.append("stock", stock || 0);
@@ -123,10 +124,10 @@ export default function ProductFormPage() {
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               <label style={{ fontWeight: 700, fontSize: 14, color: "#1a202c" }}>Danh mục *</label>
               <select value={category} onChange={e => setCategory(e.target.value)} style={{ padding: "12px 16px", borderRadius: 8, border: "1px solid #c3cfe0", outline: "none", fontSize: 14, background: "#fff" }}>
-                <option value="1">Trà Sữa</option>
-                <option value="2">Cà Phê</option>
-                <option value="3">Sinh Tố</option>
-                <option value="4">Nước Ép</option>
+                {categories.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+                {categories.length === 0 && <option value="1">Chưa có danh mục</option>}
               </select>
             </div>
           </div>
