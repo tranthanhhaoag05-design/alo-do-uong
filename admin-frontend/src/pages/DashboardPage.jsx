@@ -145,7 +145,7 @@ export default function DashboardPage() {
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-            <span style={{ fontSize: 24, fontWeight: 800, color: "#0d1117" }}>{stats.weekly.total.toLocaleString("vi-VN")}₫</span>
+            <span style={{ fontSize: 24, fontWeight: 800, color: "#0d1117" }}>{(stats.weekly?.total || 0).toLocaleString("vi-VN")}₫</span>
             <span
               style={{
                 background: "#d4f5e9",
@@ -159,7 +159,8 @@ export default function DashboardPage() {
               Tuần qua
             </span>
           </div>
-          <MiniBarChart values={stats.weekly.values} days={stats.weekly.days} />
+          <MiniBarChart values={stats.weekly?.values || []} days={stats.weekly?.days || []} />
+
         </div>
 
         {/* Top products */}
