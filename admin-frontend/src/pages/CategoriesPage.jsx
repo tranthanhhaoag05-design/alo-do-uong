@@ -70,28 +70,34 @@ export default function CategoriesPage() {
       const res = await fetch(`${BASE_URL}${id}/`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: editName })
+        body: JSON.stringify({ name: editName.trim() })
       });
       if (res.ok) {
         setEditingId(null);
         fetchCategories();
+      } else {
+        const errData = await res.json();
+        alert("❌ Lỗi khi cập nhật: " + JSON.stringify(errData));
       }
     } catch (error) {
-      alert("Lỗi khi cập nhật");
+      alert("❌ Lỗi kết nối khi cập nhật: " + error.message);
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Bạn có chắc chắn muốn xóa danh mục này? Các sản phẩm thuộc danh mục này có thể bị ảnh hưởng.")) return;
+    if (!window.confirm("Bạn có chắc chắn muốn xóa danh mục này?")) return;
     try {
       const res = await fetch(`${BASE_URL}${id}/`, { method: "DELETE" });
       if (res.ok) {
         fetchCategories();
+      } else {
+        alert("❌ Lỗi khi xóa: Không thể xóa danh mục này.");
       }
     } catch (error) {
-      alert("Lỗi khi xóa danh mục");
+      alert("❌ Lỗi kết nối khi xóa: " + error.message);
     }
   };
+
 
   return (
     <div style={{ maxWidth: 700, margin: "0 auto", padding: "20px" }}>
