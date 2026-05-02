@@ -4,10 +4,10 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from django.db import transaction
 from django.contrib.auth.models import User
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, get_user_model
 from rest_framework.authtoken.models import Token
 from .models import Store, Product, Category, Order, OrderItem, Customer
-from .serializers import StoreSerializer, ProductSerializer, OrderSerializer, CustomerSerializer
+from .serializers import StoreSerializer, ProductSerializer, OrderSerializer, CustomerSerializer, CategorySerializer
 from django.utils import timezone
 from datetime import timedelta
 from django.db.models import Sum, F
@@ -59,11 +59,6 @@ class LoginAdminAPI(APIView):
             })
         return Response({"error": "Thông tin đăng nhập không chính xác"}, status=status.HTTP_400_BAD_REQUEST)
 
-
-from .serializers import StoreSerializer, ProductSerializer, OrderSerializer, CustomerSerializer, CategorySerializer
-
-# ... (những phần trước giữ nguyên)
-
 # 1. API Cửa hàng
 class StoreListAPI(generics.ListAPIView):
     queryset = Store.objects.all()
@@ -83,7 +78,6 @@ class CategoryListAPI(generics.ListAPIView):
         if store_id:
             return Category.objects.filter(store_id=store_id)
         return Category.objects.none()
-
 
 # 2. API Sản phẩm
 class ProductListCreateAPI(generics.ListCreateAPIView):
@@ -154,7 +148,6 @@ class DashboardStatsAPI(APIView):
         today_rev = Order.objects.filter(store_id=store_id, created_at__gte=today).aggregate(total=Sum('total_price'))['total'] or 0
         new_orders = Order.objects.filter(store_id=store_id, status="Chờ xử lý").count()
         
-        # Weekly data (Dữ liệu bắt buộc cho Frontend)
         weekly_values = []
         days_labels = []
         for i in range(6, -1, -1):
