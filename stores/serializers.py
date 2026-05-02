@@ -45,3 +45,8 @@ class OrderSerializer(serializers.ModelSerializer):
             cost_price = product.cost_price if product else 0
             OrderItem.objects.create(order=order, cost_price=cost_price, **item)
         return order
+
+class OrderStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = ['status']

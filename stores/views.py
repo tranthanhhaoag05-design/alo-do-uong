@@ -118,7 +118,7 @@ class OrderListAPI(generics.ListAPIView):
 
 class OrderStatusUpdateAPI(generics.UpdateAPIView):
     queryset = Order.objects.all()
-    serializer_class = OrderSerializer
+    serializer_class = OrderStatusSerializer
 
 class OrderTrackAPI(generics.RetrieveAPIView):
     serializer_class = OrderSerializer
