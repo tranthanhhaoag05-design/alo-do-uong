@@ -221,42 +221,71 @@ class RevenueStatsAPI(APIView):
         store_id = request.query_params.get('store')
         if not store_id: return Response({"error": "Missing store_id"}, status=400)
         
-        # Mặc định lấy 30 ngày gần nhất
+        range_type = request.query_params.get('time_range', 'week')
         now = timezone.now()
-        start_date = now - timedelta(days=30)
-        
-        orders = Order.objects.filter(store_id=store_id, status='Hoàn thành', created_at__gte=start_date)
-        total_rev = orders.aggregate(total=Sum('total_price'))['total'] or 0
-        total_cost = OrderItem.objects.filter(order__in=orders).aggregate(total=Sum(F('quantity') * F('cost_price')))['total'] or 0
-        total_profit = total_rev - total_cost
-        
-        # Dữ liệu biểu đồ & Bảng chi tiết
         chart_data = []
         detailed_stats = []
-        for i in range(29, -1, -1):
-            date = (now - timedelta(days=i)).date()
-            day_orders = orders.filter(created_at__date=date)
-            rev = day_orders.aggregate(total=Sum('total_price'))['total'] or 0
-            cost = OrderItem.objects.filter(order__in=day_orders).aggregate(total=Sum(F('quantity') * F('cost_price')))['total'] or 0
-            profit = rev - cost
+        
+        if range_type == 'today':
+            start_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
+            orders = Order.objects.filter(store_id=store_id, status='Hoàn thành', created_at__gte=start_date)
+            for h in range(24):
+                hour_orders = orders.filter(created_at__hour=h)
+                rev = hour_orders.aggregate(total=Sum('total_price'))['total'] or 0
+                cost = OrderItem.objects.filter(order__in=hour_orders).aggregate(total=Sum(F('quantity') * F('cost_price')))['total'] or 0
+                chart_data.append({"name": f"{h:02d}:00", "value": rev - cost})
+        
+        elif range_type == 'year':
+            start_date = now.replace(month=1, day=1, hour=0, minute=0, second=0)
+            orders = Order.objects.filter(store_id=store_id, status='Hoàn thành', created_at__gte=start_date)
+            for m in range(1, 13):
+                month_orders = orders.filter(created_at__month=m)
+                rev = month_orders.aggregate(total=Sum('total_price'))['total'] or 0
+                cost = OrderItem.objects.filter(order__in=month_orders).aggregate(total=Sum(F('quantity') * F('cost_price')))['total'] or 0
+                chart_data.append({"name": f"Tháng {m}", "value": rev - cost})
+        
+        else: # Week, Month, Custom
+            days = 7 if range_type == 'week' else 30
+            if range_type == 'custom':
+                try:
+                    s_str = request.query_params.get('start_date')
+                    e_str = request.query_params.get('end_date')
+                    start_date = timezone.datetime.strptime(s_str, '%Y-%m-%d')
+                    end_date = timezone.datetime.strptime(e_str, '%Y-%m-%d')
+                    days = (end_date - start_date).days + 1
+                    now = end_date
+                except: days = 30
             
-            chart_data.append({"name": date.strftime('%d/%m'), "value": profit})
-            if rev > 0:
-                detailed_stats.append({
-                    "date": date.strftime('%d/%m/%Y'),
-                    "revenue": f"{rev:,}₫",
-                    "cost": f"{cost:,}₫",
-                    "profit": f"{profit:,}₫",
-                    "margin": f"{int(profit/rev*100)}%" if rev > 0 else "0%"
-                })
+            start_date = now - timedelta(days=days-1)
+            orders = Order.objects.filter(store_id=store_id, status='Hoàn thành', created_at__gte=start_date.replace(hour=0, minute=0))
+            
+            for i in range(days-1, -1, -1):
+                date = (now - timedelta(days=i)).date()
+                day_orders = orders.filter(created_at__date=date)
+                rev = day_orders.aggregate(total=Sum('total_price'))['total'] or 0
+                cost = OrderItem.objects.filter(order__in=day_orders).aggregate(total=Sum(F('quantity') * F('cost_price')))['total'] or 0
+                profit = rev - cost
+                chart_data.append({"name": date.strftime('%d/%m'), "value": profit})
+                if rev > 0:
+                    detailed_stats.append({
+                        "date": date.strftime('%d/%m/%Y'),
+                        "revenue": f"{rev:,}₫", "cost": f"{cost:,}₫", "profit": f"{profit:,}₫",
+                        "margin": f"{int(profit/rev*100)}%" if rev > 0 else "0%"
+                    })
+
+        # Cập nhật Metrics tổng quát
+        orders_all = Order.objects.filter(store_id=store_id, status='Hoàn thành', created_at__gte=start_date if 'start_date' in locals() else now - timedelta(days=30))
+        total_rev = orders_all.aggregate(total=Sum('total_price'))['total'] or 0
+        total_cost = OrderItem.objects.filter(order__in=orders_all).aggregate(total=Sum(F('quantity') * F('cost_price')))['total'] or 0
+        total_profit = total_rev - total_cost
 
         return Response({
             "metrics": [
-                {"label": "Tổng doanh thu (30 ngày)", "value": f"{total_rev:,}₫", "delta": "Ổn định", "up": True},
+                {"label": "Doanh thu kỳ này", "value": f"{total_rev:,}₫", "delta": "Ổn định", "up": True},
                 {"label": "Lợi nhuận ròng", "value": f"{total_profit:,}₫", "delta": f"{int(total_profit/total_rev*100) if total_rev>0 else 0}%", "up": True},
             ],
             "chart_data": chart_data,
-            "detailed_stats": detailed_stats[::-1] # Mới nhất lên đầu
+            "detailed_stats": detailed_stats[::-1] if detailed_stats else []
         })
 
 class CustomerListAPI(generics.ListAPIView):
