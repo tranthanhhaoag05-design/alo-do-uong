@@ -228,21 +228,37 @@ function CartPage({ cart, setCart, setPage }) {
 
         </div>
       ))}
-      <div style={{ position: "fixed", bottom: 85, left: 0, right: 0, width: "100%", padding: "10px 20px", background: "white", zIndex: 90, borderTop: "1px solid #f0f3f8", display: "flex", justifyContent: "center" }}>
+      <div style={{ position: "fixed", bottom: 85, left: 0, right: 0, width: "100%", padding: "10px 20px", background: "white", zIndex: 90, borderTop: "1px solid #f0f3f8", display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+        
+        {cart.reduce((s, i) => s + i.qty, 0) < 5 && (
+          <div style={{ color: "#ef4444", fontSize: 13, fontWeight: 700 }}>
+            ⚠️ Bạn cần chọn thêm {5 - cart.reduce((s, i) => s + i.qty, 0)} món nữa để giao hàng!
+          </div>
+        )}
+
         <button 
-          onClick={() => setPage("checkout")} 
+          onClick={() => {
+            if (cart.reduce((s, i) => s + i.qty, 0) < 5) {
+              alert("Bạn cần chọn tối thiểu 5 món để đặt hàng nhé!");
+              return;
+            }
+            setPage("checkout");
+          }} 
           className="btn-grad" 
           style={{ 
             width: "100%", maxWidth: 500, height: 55, borderRadius: 30, border: "none", 
             display: "flex", alignItems: "center", justifyContent: "space-between", 
             padding: "0 30px", fontSize: 16, fontWeight: 800, color: "white",
-            boxShadow: "0 10px 25px rgba(0,200,150,0.3)", cursor: "pointer"
+            boxShadow: "0 10px 25px rgba(0,200,150,0.3)", cursor: "pointer",
+            opacity: cart.reduce((s, i) => s + i.qty, 0) < 5 ? 0.6 : 1,
+            filter: cart.reduce((s, i) => s + i.qty, 0) < 5 ? "grayscale(1)" : "none"
           }}
         >
-          <span>ĐẶT HÀNG NGAY</span>
+          <span>{cart.reduce((s, i) => s + i.qty, 0) < 5 ? "CHƯA ĐỦ 5 MÓN" : "ĐẶT HÀNG NGAY"}</span>
           <span style={{ fontSize: 18 }}>{fmt(total)}</span>
         </button>
       </div>
+
 
 
     </div>
