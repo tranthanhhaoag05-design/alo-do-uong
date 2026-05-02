@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from "react";
 
-const STATUS_OPTIONS = ["Chờ xác nhận", "Đang xử lý", "Đang giao", "Hoàn thành", "Đã hủy"];
+const STATUS_OPTIONS = ["Chờ xử lý", "Chờ xác nhận", "Đang xử lý", "Đang giao", "Hoàn thành", "Đã hủy"];
 
 const STATUS_STYLE = {
+  "Chờ xử lý": { bg: "#deeeff", color: "#0d4a8a" },
   "Chờ xác nhận": { bg: "#deeeff", color: "#0d4a8a" },
   "Đang xử lý": { bg: "#f3e8ff", color: "#6b21a8" },
   "Đang giao": { bg: "#fff0cc", color: "#8a5d00" },
   "Hoàn thành": { bg: "#d4f5e9", color: "#0a6e47" },
   "Đã hủy": { bg: "#ffe0e0", color: "#b02020" },
 };
+
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState([]);
