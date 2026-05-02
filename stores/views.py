@@ -121,6 +121,7 @@ class OrderStatusUpdateAPI(generics.UpdateAPIView):
     serializer_class = OrderStatusSerializer
 
 class OrderTrackAPI(generics.RetrieveAPIView):
+    permission_classes = [AllowAny]
     serializer_class = OrderSerializer
     lookup_field = 'order_code'
     queryset = Order.objects.all()
