@@ -59,8 +59,9 @@ export default function CategoriesPage() {
         alert("Lỗi từ máy chủ: " + JSON.stringify(errData));
       }
     } catch (error) {
-      alert("Lỗi kết nối máy chủ khi thêm danh mục");
+      alert("❌ Lỗi kết nối máy chủ: " + error.message);
     }
+
   };
 
 
