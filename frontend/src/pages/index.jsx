@@ -322,13 +322,13 @@ export default function App() {
   useEffect(() => {
     const savedO = JSON.parse(localStorage.getItem("alo_orders") || "[]");
     setOrders(savedO);
-    const savedS = localStorage.getItem("selected_store_id");
-    if (savedS) {
-      fetch(`https://alo-do-uong.onrender.com/api/stores/${savedS}/`)
-        .then(r => r.json()).then(data => setStoreData(data));
-    }
+    // Luôn bắt đầu bằng việc chọn cửa hàng mới để đảm bảo đúng quy trình bạn yêu cầu
+    localStorage.removeItem("selected_store_id");
+    setStoreData(null);
+    
     setTimeout(() => setShowSplash(false), 2000);
   }, []);
+
 
   const handleStoreSelect = (s) => {
     setStoreData(s);
