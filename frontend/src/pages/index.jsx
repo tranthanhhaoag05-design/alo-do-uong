@@ -411,15 +411,16 @@ export default function App() {
           <span style={{ fontSize: 24 }}>🏠</span>
           <span style={{ fontSize: 11, fontWeight: 700, color: page === "home" ? "#00c896" : "#8891a4" }}>Cửa hàng</span>
         </button>
-        <button className={`nav-item ${page === "cart" ? "active" : ""}`} onClick={() => setPage("home")} style={{ position: "relative", background: "none", border: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+        <button className={`nav-item ${page === "cart" ? "active" : ""}`} onClick={() => setPage("cart")} style={{ position: "relative", background: "none", border: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
           <span style={{ fontSize: 24 }}>🛒</span>
           <span style={{ fontSize: 11, fontWeight: 700, color: page === "cart" ? "#00c896" : "#8891a4" }}>Giỏ hàng</span>
           {cart.length > 0 && (
-            <span style={{ position: "absolute", top: -5, right: -5, background: "#ff4d4f", color: "#fff", fontSize: 10, width: 18, height: 18, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800 }}>
+            <span style={{ position: "absolute", top: -2, right: 10, background: "#ff4d4f", color: "#fff", fontSize: 10, width: 18, height: 18, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800 }}>
               {cart.reduce((s, i) => s + i.qty, 0)}
             </span>
           )}
         </button>
+
         <button className={`nav-item ${page === "checkout" ? "active" : ""}`} onClick={() => setPage("checkout")} style={{ background: "none", border: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
           <span style={{ fontSize: 24 }}>📍</span>
           <span style={{ fontSize: 11, fontWeight: 700, color: page === "checkout" ? "#00c896" : "#8891a4" }}>Đặt hàng</span>
