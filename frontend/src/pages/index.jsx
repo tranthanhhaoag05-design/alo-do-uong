@@ -390,14 +390,18 @@ export default function App() {
         <button className={`nav-item ${page === "home" ? "active" : ""}`} onClick={() => setPage("home")}>
           <span className="nav-icon">🏠</span><span className="nav-label">Cửa hàng</span>
         </button>
-        <button className={`nav-item ${page === "cart" || page === "checkout" ? "active" : ""}`} onClick={() => setPage("cart")}>
+        <button className={`nav-item ${page === "cart" ? "active" : ""}`} onClick={() => setPage("cart")}>
           <span className="nav-icon">🛒</span><span className="nav-label">Giỏ hàng</span>
           {cart.length > 0 && <span className="cart-badge">{cart.reduce((s, i) => s + i.qty, 0)}</span>}
+        </button>
+        <button className={`nav-item ${page === "checkout" ? "active" : ""}`} onClick={() => setPage("checkout")}>
+          <span className="nav-icon">📍</span><span className="nav-label">Đặt hàng</span>
         </button>
         <button className={`nav-item ${page === "history" ? "active" : ""}`} onClick={() => setPage("history")}>
           <span className="nav-icon">📜</span><span className="nav-label">Lịch sử</span>
         </button>
       </nav>
+
     </div>
   );
 }
