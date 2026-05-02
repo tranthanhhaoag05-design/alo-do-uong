@@ -414,16 +414,17 @@ function CheckoutPage({ cart, storeData, setPage, setToast, setOrders, isOpen })
 
       <button 
         onClick={handleSubmit} 
-        disabled={loading} 
+        disabled={loading || !isOpen} 
         className="btn-grad" 
         style={{ 
           width: "100%", padding: 20, marginTop: 35, fontSize: 18, fontWeight: 800, 
-          boxShadow: isFormValid ? "0 10px 25px rgba(41,121,255,0.4)" : "none",
-          opacity: isFormValid ? 1 : 0.6,
-          filter: isFormValid ? "none" : "grayscale(0.5)"
+          boxShadow: (isFormValid && isOpen) ? "0 10px 25px rgba(41,121,255,0.4)" : "none",
+          opacity: (isFormValid && isOpen) ? 1 : 0.6,
+          filter: (isFormValid && isOpen) ? "none" : "grayscale(0.8)",
+          cursor: (!isOpen || loading) ? "not-allowed" : "pointer"
         }}
       >
-        {loading ? "ĐANG XỬ LÝ..." : "XÁC NHẬN ĐẶT HÀNG"}
+        {loading ? "ĐANG XỬ LÝ..." : (!isOpen ? "QUÁN ĐANG TẠM NGHỈ" : "XÁC NHẬN ĐẶT HÀNG")}
       </button>
     </div>
   );
@@ -488,7 +489,17 @@ export default function App() {
     const cur = now.getHours() * 60 + now.getMinutes();
     const [oh, om] = (storeData.opening_time || "07:00").split(":").map(Number);
     const [ch, cm] = (storeData.closing_time || "22:00").split(":").map(Number);
-    return cur >= (oh * 60 + om) && cur <= (ch * 60 + cm);
+    
+    const openMin = oh * 60 + om;
+    const closeMin = ch * 60 + cm;
+
+    if (closeMin < openMin) {
+        // Mở cửa xuyên đêm (VD: 07:00 đến 02:00 sáng hôm sau)
+        return cur >= openMin || cur <= closeMin;
+    } else {
+        // Mở cửa trong ngày (VD: 07:00 đến 22:00)
+        return cur >= openMin && cur <= closeMin;
+    }
   };
 
   if (showSplash) return (
