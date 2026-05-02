@@ -1,8 +1,10 @@
-
 from django.db import models
+from django.contrib.auth.models import User
 
 # Bảng 1: Quản lý Cửa hàng (Tạp hóa Anh Đô, Coffee Góc Phố...)
 class Store(models.Model):
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='owned_stores', null=True, blank=True, verbose_name="Chủ sở hữu")
+
     name = models.CharField(max_length=255, verbose_name="Tên cửa hàng")
     phone = models.CharField(max_length=20, verbose_name="Số Zalo nhận đơn")
     address = models.CharField(max_length=255, verbose_name="Địa chỉ")

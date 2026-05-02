@@ -18,7 +18,7 @@ export default function ProductFormPage() {
 
   // Load danh mục
   useEffect(() => {
-    fetch("https://alo-do-uong.onrender.com/api/stores/")
+    fetch(`https://alo-do-uong.onrender.com/api/stores/?store=${localStorage.getItem("store_id")}`)
       .then(res => res.json())
       .then(data => {
         if (data.length > 0) {

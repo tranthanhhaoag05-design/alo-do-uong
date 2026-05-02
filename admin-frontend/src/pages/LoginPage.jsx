@@ -7,51 +7,48 @@ export default function LoginPage({ onLogin }) {
   const [phone, setPhone] = useState("");
   const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
-    // Kiểm tra đuôi email
     if (!email.endsWith("@admin.com")) {
       setError("Email đăng nhập Admin phải có đuôi @admin.com");
       return;
     }
 
-    if (isRegister) {
-      // Giả lập đăng ký: Lưu vào localStorage
-      const users = JSON.parse(localStorage.getItem("admin_users") || "[]");
-      if (users.find(u => u.email === email)) {
-        setError("Tài khoản này đã tồn tại!");
-        return;
-      }
-      const newUser = { email, password, phone };
-      users.push(newUser);
-      localStorage.setItem("admin_users", JSON.stringify(users));
-      alert("Đăng ký thành công! Hãy đăng nhập.");
-      setIsRegister(false);
-    } else {
-      // Đăng nhập
-      const users = JSON.parse(localStorage.getItem("admin_users") || "[]");
-      // Mặc định cho phép admin@admin.com / admin123 nếu chưa có user nào
-      if (email === "admin@admin.com" && password === "admin123") {
-        loginSuccess({ email, phone: "0901234567" });
+    const endpoint = isRegister ? "register" : "login";
+    try {
+      const response = await fetch(`https://alo-do-uong.onrender.com/api/admin/${endpoint}/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, phone })
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        setError(data.error || "Có lỗi xảy ra, vui lòng thử lại!");
         return;
       }
 
-      const user = users.find(u => u.email === email && u.password === password);
-      if (user) {
-        loginSuccess(user);
+      if (isRegister) {
+        alert("Đăng ký thành công! Hãy đăng nhập.");
+        setIsRegister(false);
       } else {
-        setError("Email hoặc mật khẩu không chính xác!");
+        loginSuccess(data);
       }
+    } catch (err) {
+      setError("Không thể kết nối tới server!");
     }
   };
 
-  const loginSuccess = (user) => {
-    localStorage.setItem("admin_token", "authenticated_token_123");
-    localStorage.setItem("admin_user", JSON.stringify(user));
-    onLogin(user);
+  const loginSuccess = (data) => {
+    localStorage.setItem("admin_token", data.token);
+    localStorage.setItem("admin_user", JSON.stringify(data.user));
+    localStorage.setItem("store_id", data.store_id); // QUAN TRỌNG: Lưu store_id thật
+    onLogin(data.user);
   };
+
 
   return (
     <div style={{ 

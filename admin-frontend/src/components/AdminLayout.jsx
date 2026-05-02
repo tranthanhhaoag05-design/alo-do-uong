@@ -227,13 +227,17 @@ export default function AdminLayout() {
   const [storeName, setStoreName] = useState("Alo Đồ Uống");
 
   useEffect(() => {
-    fetch("https://alo-do-uong.onrender.com/api/stores/1/")
+    const storeId = localStorage.getItem("store_id");
+    if (!storeId) return;
+
+    fetch(`https://alo-do-uong.onrender.com/api/stores/${storeId}/`)
       .then(res => res.json())
       .then(data => {
         if (data.name) setStoreName(data.name);
       })
       .catch(err => console.error(err));
   }, []);
+
 
   return (
     <div

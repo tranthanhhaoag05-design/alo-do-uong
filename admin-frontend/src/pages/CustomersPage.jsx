@@ -5,7 +5,7 @@ export default function CustomersPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("https://alo-do-uong.onrender.com/api/customers/")
+    fetch(`https://alo-do-uong.onrender.com/api/customers/?store=${localStorage.getItem("store_id")}`)
       .then(res => res.json())
       .then(data => {
         setCustomers(data);

@@ -10,7 +10,7 @@ export default function ProductsPage() {
 
   const fetchProducts = async () => {
     try {
-      const res = await fetch("https://alo-do-uong.onrender.com/api/products/");
+      const res = await fetch(`https://alo-do-uong.onrender.com/api/products/?store=${localStorage.getItem("store_id")}`);
       const data = await res.json();
       setProducts(data);
     } catch (error) {

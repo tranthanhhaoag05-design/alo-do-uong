@@ -16,7 +16,7 @@ export default function SettingsPage() {
   const [locLoading, setLocLoading] = useState(false);
 
   useEffect(() => {
-    fetch("https://alo-do-uong.onrender.com/api/stores/1/")
+    fetch(`https://alo-do-uong.onrender.com/api/stores/1/?store=${localStorage.getItem("store_id")}`)
       .then(res => res.json())
       .then(data => {
         setName(data.name || "");

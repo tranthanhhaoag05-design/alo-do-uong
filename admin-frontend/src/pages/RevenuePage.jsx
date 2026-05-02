@@ -18,10 +18,12 @@ export default function RevenuePage() {
 
   const fetchData = async () => {
     setLoading(true);
-    let url = `https://alo-do-uong.onrender.com/api/revenue/?time_range=${timeRange}`;
+    const storeId = localStorage.getItem("store_id");
+    let url = `https://alo-do-uong.onrender.com/api/revenue/?time_range=${timeRange}&store=${storeId}`;
     if (timeRange === "custom" && startDate && endDate) {
       url += `&start_date=${startDate}&end_date=${endDate}`;
     }
+
     
     try {
       const res = await fetch(url);

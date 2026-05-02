@@ -23,7 +23,7 @@ export default function OrdersPage() {
 
   const fetchOrders = async () => {
     try {
-      const res = await fetch("https://alo-do-uong.onrender.com/api/orders/");
+      const res = await fetch(`https://alo-do-uong.onrender.com/api/orders/?store=${localStorage.getItem("store_id")}`);
       const data = await res.json();
       setOrders(data);
     } catch (error) {
