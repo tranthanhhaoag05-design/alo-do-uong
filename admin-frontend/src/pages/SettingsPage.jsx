@@ -15,7 +15,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [locLoading, setLocLoading] = useState(false);
 
-  // --- LOGIC ĐỒNG HỒ THỜI GIAN THỰC ---
+  // --- LOGIC ĐỒNG HỒ THỜI GIAN THỰC ĐƯỢC CHÈN THÊM ---
   const [currentTime, setCurrentTime] = useState(new Date());
   
   useEffect(() => {
@@ -37,7 +37,7 @@ export default function SettingsPage() {
   };
 
   const isActuallyOpen = isOpen && isTimeOpen();
-  // -----------------------------------
+  // --------------------------------------------------
 
   useEffect(() => {
     const storeId = localStorage.getItem("store_id");
@@ -98,10 +98,6 @@ export default function SettingsPage() {
     try {
       const res = await fetch(`https://alo-do-uong.onrender.com/api/stores/${storeId}/`, {
         method: "PUT",
-        headers: {
-            // Chú ý: Cần bổ sung Token xác thực nếu Backend yêu cầu quyền Admin
-            "Authorization": `Token ${localStorage.getItem("admin_token")}`
-        },
         body: formData,
       });
 
@@ -130,7 +126,7 @@ export default function SettingsPage() {
         </div>
         {!isActuallyOpen && isOpen && (
             <div style={{ fontSize: 13, marginTop: 8, color: "#b02020", fontWeight: 600 }}>
-              * Lý do: Bây giờ là {currentTime.toLocaleTimeString('vi-VN')}, đã ngoài khung giờ hoạt động ({openingTime} - {closingTime}), hệ thống tự động chốt đơn nghỉ dù công tắc bên dưới đang bật.
+              * Lý do: Bây giờ là {currentTime.toLocaleTimeString('vi-VN')}, đã ngoài khung giờ hoạt động ({openingTime} - {closingTime}), hệ thống tự động chốt đơn nghỉ.
             </div>
         )}
         {!isActuallyOpen && !isOpen && (
