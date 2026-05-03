@@ -41,20 +41,22 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'stores',
     'rest_framework', 
+    'rest_framework.authtoken',
     'corsheaders',    
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # ĐÃ BẬT CÔNG TẮC GIAO DIỆN
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware', 
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
 
 ROOT_URLCONF = 'backend.urls'
 
@@ -124,21 +126,22 @@ STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 CORS_ALLOW_ALL_ORIGINS = True
-
-# Cho phép gửi kèm Cookie nếu cần
 CORS_ALLOW_CREDENTIALS = True
 
-# QUAN TRỌNG: Thêm link Vercel và Render vào danh sách tin tưởng
+# MỞ CỬA TỐI ĐA ĐỂ TRÁNH LỖI KẾT NỐI
 CSRF_TRUSTED_ORIGINS = [
     "https://alo-do-uong.vercel.app",
-    "https://alo-do-uong.onrender.com",  # FIX LỖI 403: ĐÃ CẤP QUYỀN CHO RENDER
-    "https://6xnhqq55-8000.asse.devtunnels.ms", 
-    "http://192.168.1.166:8000",
-    "http://127.0.0.1:8000",
+    "https://alo-do-uong.onrender.com",
+    "https://alo-do-uong-xzcc.onrender.com",
+    "https://*.onrender.com",
+    "https://*.vercel.app",
 ]
 
-# Cho phép Render nhận diện chính nó
-ALLOWED_HOSTS = ['alo-do-uong.onrender.com', 'localhost', '127.0.0.1', '*']
+ALLOWED_HOSTS = ['*']
+
+
+
+
 
 # ==========================================
 # 🌟 CẤU HÌNH ĐỂ DJANGO XUẤT ẢNH QR RA BÊN NGOÀI

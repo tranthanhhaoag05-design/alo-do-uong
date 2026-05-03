@@ -1,4 +1,26 @@
+<<<<<<< HEAD
 frontend/node_modules/
 **/__pycache__/
 *.pyc
 *.env
+=======
+# Environments
+venv/
+.env
+__pycache__/
+*.pyc
+
+# Database
+db.sqlite3
+
+# Node
+node_modules/
+dist/
+.DS_Store
+
+# Project specific trash
+admin-frontend-trash/
+frontend/admin-frontend/
+media/store_qrs/
+media/products/
+>>>>>>> e05b7b68e9bc5572cdf45f95df423178ef87d374

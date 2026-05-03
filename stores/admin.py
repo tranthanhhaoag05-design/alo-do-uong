@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Store, Category, Product, Order, OrderItem
+from .models import Store, Category, Product, Order, OrderItem, Customer
 
 # 1. Đăng ký Cửa hàng
 @admin.register(Store)
@@ -51,3 +51,11 @@ class OrderAdmin(admin.ModelAdmin):
             'fields': ('address', 'note', 'total_price', 'created_at')
         }),
     )
+
+# 6. Đăng ký Khách hàng (QUẢN LÝ USER/KHÁCH)
+@admin.register(Customer)
+class CustomerAdmin(admin.ModelAdmin):
+    list_display = ('name', 'phone', 'store', 'total_orders', 'total_spent', 'last_order_date')
+    search_fields = ('name', 'phone')
+    list_filter = ('store',)
+    readonly_fields = ('total_orders', 'total_spent', 'last_order_date')

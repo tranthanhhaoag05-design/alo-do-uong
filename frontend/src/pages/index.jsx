@@ -1,614 +1,638 @@
-import React, { useState, useRef, useEffect } from 'react';
-const noteTagsList = ["Ít đá", "Đá riêng", "Ít đường", "Không đường"];
+import { useState, useEffect, useRef } from "react";
 
-const HomePage = () => {
-    // ==========================================
-    // 1. STATE QUẢN LÝ QUY TRÌNH
-    // ==========================================
-    const [appState, setAppState] = useState('splash'); 
+const NOTE_SUGGESTIONS = ["ít đá", "không đá", "nhiều đá", "ít ngọt", "không ngọt", "thêm đường", "không topping", "thêm trân châu"];
+const MIN_ORDER = 1;
+const fmt = (v) => new Intl.NumberFormat('vi-VN').format(v) + "₫";
+const G = "linear-gradient(135deg, #00c896 0%, #2979ff 100%)";
+const API_URL = "https://alo-do-uong-xzcc.onrender.com/api";
+const G_SOFT = "linear-gradient(135deg, #e0f7fa 0%, #e3f0ff 100%)";
 
-    const [stores, setStores] = useState([]);
-    const [currentStore, setCurrentStore] = useState(null);
-    const [menuData, setMenuData] = useState([]);
+const globalStyle = `
+  @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Baloo 2', sans-serif; background: #f5f7fa; -webkit-tap-highlight-color: transparent; overscroll-behavior: none; }
+  :root { --accent: #2979FF; --accent2: #00E5FF; --grad: ${G}; --white: #ffffff; --bg: #f5f7fa; --text: #1a1a2e; --muted: #8892a4; --card: #ffffff; --border: #e8ecf4; --danger: #ff4757; --safe-bottom: env(safe-area-inset-bottom, 16px); }
+  
+  .app-shell { width: 100%; max-width: 1500px; margin: 0 auto; min-height: 100dvh; background: var(--bg); position: relative; overflow-x: hidden; }
+  .products-grid { display: grid; gap: 12px; grid-template-columns: repeat(2, 1fr); padding: 0 16px; }
+  @media (min-width: 768px) { .products-grid { grid-template-columns: repeat(4, 1fr); gap: 30px; } .app-shell { padding: 0 20px; } }
+  
+  .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 1450px; background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); border-top: 1px solid var(--border); display: flex; padding-bottom: var(--safe-bottom); z-index: 100; }
+  .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px 0 8px; border: none; background: none; cursor: pointer; transition: all 0.2s ease; position: relative; }
+  .nav-item.active .nav-icon { background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .nav-item.active .nav-label { color: var(--accent); font-weight: 800; }
+  .nav-icon { font-size: 24px; transition: transform 0.2s; }
+  .nav-label { font-size: 11px; font-weight: 600; color: var(--muted); margin-top: 4px; }
+  .cart-badge { position: absolute; top: 8px; right: calc(50% - 20px); background: var(--danger); color: white; font-size: 10px; font-weight: 800; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid white; }
 
-    const [customerName, setCustomerName] = useState(""); 
-    const [customerPhone, setCustomerPhone] = useState("");
-    const [showAuthModal, setShowAuthModal] = useState(false);
+  .product-card { background: var(--card); border-radius: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); overflow: hidden; transition: transform 0.2s; cursor: pointer; border: 1px solid var(--border); }
+  .product-card:active { transform: scale(0.96); }
+  .btn-grad { background: var(--grad); color: white; border: none; border-radius: 50px; font-family: inherit; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(41,121,255,0.3); }
+  .btn-grad:active { transform: scale(0.96); }
+  .input-field { width: 100%; border: 2px solid var(--border); border-radius: 16px; padding: 14px 18px; font-family: inherit; font-size: 15px; outline: none; transition: border-color 0.2s; }
+  .input-field:focus { border-color: var(--accent); }
+  .toast { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); color: white; padding: 12px 24px; border-radius: 50px; z-index: 2000; animation: fadeUp 0.3s ease both; backdrop-filter: blur(10px); font-weight: 600; }
+  @keyframes fadeUp { from { transform: translate(-50%, 30px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+  .no-scroll::-webkit-scrollbar { display: none; }
+`;
 
-    const [cart, setCart] = useState([]);
-    const [filterCategory, setFilterCategory] = useState('all');
-    const [address, setAddress] = useState('');
-    const [selectedKCN, setSelectedKCN] = useState('');
-    const [note, setNote] = useState('');
-    const [activeTags, setActiveTags] = useState([]);
-    const [showTags, setShowTags] = useState(false);
-    const [showModal, setShowModal] = useState(false);
-    const [gpsCoords, setGpsCoords] = useState(null);
-    const [paymentMethod, setPaymentMethod] = useState("Tiền mặt");
-    const DraggableCallButton = ({ phone }) => {
-    // Vị trí mặc định (Góc dưới bên phải màn hình)
-    const [position, setPosition] = useState({ x: 0, y: 0 });
-    const [isDragging, setIsDragging] = useState(false);
-    const [hasMoved, setHasMoved] = useState(false); 
-    const dragRef = useRef(null);
-    const offset = useRef({ x: 0, y: 0 });
+function Toast({ msg }) { return msg ? <div className="toast">{msg}</div> : null; }
 
-    // Khởi tạo vị trí khi component render lần đầu
-    useEffect(() => {
-        setPosition({ 
-            x: window.innerWidth - 70, 
-            y: window.innerHeight - 100 
-        });
-    }, []);
+// ─── STORE PICKER ─────────────────────────────────────────────────────────────
+function StorePicker({ onSelect }) {
+  const [stores, setStores] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-    const handleStart = (e) => {
-        const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
-        const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+  useEffect(() => {
+    fetch("https://alo-do-uong.onrender.com/api/stores/?_t=" + Date.now())
+      .then(r => r.json()).then(data => { setStores(data); setLoading(false); }).catch(() => setLoading(false));
+  }, []);
 
-        if (dragRef.current) {
-            const rect = dragRef.current.getBoundingClientRect();
-            offset.current = {
-                x: clientX - rect.left,
-                y: clientY - rect.top
-            };
+  if (loading) return <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}><div style={{ display: "flex", gap: 6 }}>{[1, 2, 3].map(i => <div key={i} style={{ width: 10, height: 10, background: G, borderRadius: "50%", animation: "pulse 1.4s infinite", animationDelay: `${i * 0.2}s` }} />)}</div><style>{`@keyframes pulse { 0%, 100% { transform: scale(0.6); opacity: 0.4; } 50% { transform: scale(1.2); opacity: 1; } }`}</style></div>;
+
+  return (
+    <div style={{ padding: "50px 20px" }}>
+      <div style={{ textAlign: "center", marginBottom: 45 }}>
+        <div style={{ fontSize: 70, marginBottom: 15 }}>🧉</div>
+        <h1 style={{ fontSize: 32, fontWeight: 800, color: "#1a1a2e" }}>Chọn quán ngay!</h1>
+        <p style={{ color: "var(--muted)", fontWeight: 500, fontSize: 16 }}>Khám phá các tiệm nước quanh bạn</p>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+        {stores.map(s => (
+          <div key={s.id} onClick={() => onSelect(s)} style={{ background: "white", padding: 22, borderRadius: 24, boxShadow: "0 8px 25px rgba(0,0,0,0.06)", display: "flex", alignItems: "center", gap: 18, cursor: "pointer", border: "1px solid #f0f3f8" }}>
+            <div style={{ width: 60, height: 60, background: G, borderRadius: 18, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, boxShadow: "0 4px 12px rgba(41,121,255,0.2)" }}>🥤</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 800, fontSize: 19, color: "#1a1a2e" }}>{s.name}</div>
+              <div style={{ fontSize: 13, color: "var(--muted)", marginTop: 4 }}>📍 {s.address}</div>
+            </div>
+            <div style={{ fontSize: 20, color: "var(--accent)" }}>➔</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── HOME PAGE ────────────────────────────────────────────────────────────────
+function HomePage({ cart, setCart, setToast, setPage, storeData, isOpen, onChangeStore }) {
+  const [activeCat, setActiveCat] = useState(0);
+  const [categories, setCategories] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(`https://alo-do-uong.onrender.com/api/categories/?store=${storeData.id}&_t=${Date.now()}`)
+      .then(r => r.json()).then(data => setCategories(data)).catch(e => console.error(e));
+
+    fetch(`https://alo-do-uong.onrender.com/api/products/?store=${storeData.id}&active=true&_t=${Date.now()}`)
+      .then(r => r.json()).then(data => { setProducts(data); setLoading(false); }).catch(() => setLoading(false));
+  }, [storeData]);
+
+  const filtered = activeCat === 0 ? products : products.filter(p => p.category === activeCat);
+  const featured = products.slice(0, 4);
+
+  const addToCart = (p) => {
+    if (p.stock <= 0) {
+      setToast("Món này hiện đã hết hàng!");
+      return;
+    }
+    setCart(prev => {
+      const exist = prev.find(i => i.id === p.id);
+      if (exist) {
+        if (exist.qty >= p.stock) {
+          setToast(`⚠️ Món này chỉ còn ${p.stock} suất thôi bạn ơi!`);
+          return prev;
         }
-        setIsDragging(true);
-        setHasMoved(false); // Reset trạng thái di chuyển
-    };
 
-    const handleMove = (e) => {
-        if (!isDragging) return;
-        setHasMoved(true); // Đánh dấu là người dùng đang kéo chứ không phải click
-
-        const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
-        const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-
-        let newX = clientX - offset.current.x;
-        let newY = clientY - offset.current.y;
-
-        // Giới hạn để nút không bị kéo lọt ra khỏi màn hình
-        const btnSize = 50; 
-        newX = Math.max(0, Math.min(newX, window.innerWidth - btnSize));
-        newY = Math.max(0, Math.min(newY, window.innerHeight - btnSize));
-
-        setPosition({ x: newX, y: newY });
-    };
-
-    const handleEnd = () => {
-        setIsDragging(false);
-    };
-
-    // Lắng nghe sự kiện di chuyển trên toàn window
-    useEffect(() => {
-        if (isDragging) {
-            window.addEventListener('mousemove', handleMove);
-            window.addEventListener('mouseup', handleEnd);
-            window.addEventListener('touchmove', handleMove, { passive: false });
-            window.addEventListener('touchend', handleEnd);
-        } else {
-            window.removeEventListener('mousemove', handleMove);
-            window.removeEventListener('mouseup', handleEnd);
-            window.removeEventListener('touchmove', handleMove);
-            window.removeEventListener('touchend', handleEnd);
-        }
-        return () => {
-            window.removeEventListener('mousemove', handleMove);
-            window.removeEventListener('mouseup', handleEnd);
-            window.removeEventListener('touchmove', handleMove);
-            window.removeEventListener('touchend', handleEnd);
-        };
-    }, [isDragging]);
-
-    return (
-        <a
-            ref={dragRef}
-            href={hasMoved ? "#" : `tel:${phone}`} 
-            onMouseDown={handleStart}
-            onTouchStart={handleStart}
-            onClick={(e) => { if (hasMoved) e.preventDefault(); }} // Chặn gọi điện nếu vừa kéo thả xong
-            className="d-flex align-items-center justify-content-center rounded-circle shadow-lg"
-            style={{
-                position: 'fixed',
-                left: `${position.x}px`,
-                top: `${position.y}px`,
-                width: '50px',
-                height: '50px',
-                background: 'linear-gradient(45deg, #00E5FF, #FF00FF)',
-                color: 'white',
-                textDecoration: 'none',
-                zIndex: 9999, // Đảm bảo luôn nằm trên cùng
-                cursor: isDragging ? 'grabbing' : 'grab',
-                touchAction: 'none', // Chặn cuộn màn hình khi đang kéo trên điện thoại
-                animation: isDragging ? 'none' : 'tada 1.5s infinite', // Dừng rung lắc khi đang kéo
-                userSelect: 'none'
-            }}
-        >
-            <i className="bi bi-telephone-fill fs-5"></i>
-        </a>
-    );
-};
-    // ==========================================
-    // 2. LOGIC TẢI DỮ LIỆU
-    // ==========================================
-    useEffect(() => {
-        const savedName = localStorage.getItem('alo_customer_name');
-        const savedPhone = localStorage.getItem('alo_customer_phone');
-        if (savedName) setCustomerName(savedName);
-        if (savedPhone) setCustomerPhone(savedPhone);
-
-        fetch('https://alo-do-uong.onrender.com/api/stores/', { mode: 'cors' })
-            .then(res => res.json())
-            .then(data => setStores(data || []))
-            .catch(err => console.error("Lỗi tải danh sách quán:", err));
-
-        const timer = setTimeout(() => { 
-            setAppState(prevState => prevState === 'splash' ? 'stores' : prevState);
-        }, 4000);
-
-        return () => clearTimeout(timer);
-    }, []);
-
-    useEffect(() => {
-        if (currentStore?.id) {
-            fetch(`https://alo-do-uong.onrender.com/api/menu/?store=${currentStore.id}`)
-                .then(response => response.json())
-                .then(data => {
-                    const formattedData = (data || []).map(item => ({
-                        id: item.id, name: item.name, price: item.price, category: item.category_name, img: item.image_url
-                    }));
-                    setMenuData(formattedData);
-                    setFilterCategory('all');
-                    setCart([]); 
-                })
-                .catch(error => console.error("Lỗi lấy menu:", error));
-        }
-    }, [currentStore]);
-
-    // ==========================================
-    // 3. CÁC HÀM XỬ LÝ LOGIC
-    // ==========================================
-    const categoriesFromDB = ['all', ...new Set(menuData.map(item => item.category))];
-    const formatMoney = (amount) => (amount || 0).toLocaleString('vi-VN') + " đ";
-
-    const filteredData = menuData.filter(item => {
-        if (filterCategory === 'all') return true;
-        return item.category === filterCategory;
+        return prev.map(i => i.id === p.id ? { ...i, qty: i.qty + 1 } : i);
+      }
+      return [...prev, { ...p, qty: 1 }];
     });
+    setToast(`Đã thêm ${p.name} 🛒`);
+  };
 
-    const addToCart = (item) => setCart([...cart, item]);
-    const removeFromCart = (indexToRemove) => setCart(cart.filter((_, index) => index !== indexToRemove));
-    const totalPrice = cart.reduce((sum, item) => sum + item.price, 0);
-    const totalItems = cart.length;
-
-    const toggleTag = (tag) => {
-        if (activeTags.includes(tag)) setActiveTags(activeTags.filter(t => t !== tag));
-        else setActiveTags([...activeTags, tag]);
-    };
-
-    const getLocation = () => {
-        setAddress("Đang tìm...");
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (p) => {
-                    setGpsCoords({ lat: p.coords.latitude, lon: p.coords.longitude });
-                    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${p.coords.latitude}&lon=${p.coords.longitude}`)
-                        .then(r => r.json())
-                        .then(d => setAddress(`📍 ${d.address?.road || d.display_name?.split(',')[0]} (GPS)`))
-                        .catch(() => setAddress(`Tọa độ: ${p.coords.latitude.toFixed(3)},...`));
-                },
-                () => { alert("Bật GPS lên bạn ơi!"); setAddress(""); }
-            );
-        }
-    };
-
-    const handleOpenCart = () => {
-        if (!customerName || !customerPhone) {
-            setShowAuthModal(true);
-        } else {
-            setShowModal(true);
-        }
-    };
-
-    const handleSaveUserInfo = () => {
-        if (!customerName.trim() || !customerPhone.trim()) {
-            alert("Vui lòng nhập đầy đủ Tên và Số điện thoại để quán dễ liên hệ nhé!");
-            return;
-        }
-        localStorage.setItem('alo_customer_name', customerName);
-        localStorage.setItem('alo_customer_phone', customerPhone);
-        
-        setShowAuthModal(false);
-        setShowModal(true);
-    };
-
-    const generateOrderMessage = () => {
-        if (cart.length === 0) return "";
-        let counts = {};
-        cart.forEach(x => counts[x.name] = (counts[x.name] || 0) + 1);
-
-        let msg = `🛒 ĐƠN MỚI TỪ: ${currentStore?.name?.toUpperCase() || "QUÁN"}\n`;
-        msg += `👤 Khách hàng: ${customerName} - ${customerPhone}\n`; 
-        msg += `----------------\n`;
-        for (let name in counts) {
-            msg += `+ ${counts[name]}x ${name}\n`;
-        }
-        msg += `----------------\n`;
-        msg += `🥤 Tổng số ly: ${totalItems}\n`;
-        msg += `💰 Tổng tiền: ${formatMoney(totalPrice)}\n`;
-        msg += `💳 Thanh toán: ${paymentMethod}\n`;
-        
-        let fullAddress = "";
-        if (selectedKCN) fullAddress += `[${selectedKCN}] `;
-        fullAddress += address || 'Khách chưa nhập địa chỉ chi tiết';
-        msg += `📍 Giao đến: ${fullAddress}\n`;
-
-        if (gpsCoords) {
-            msg += `🗺️ Bản đồ: https://maps.google.com/?q=${gpsCoords.lat},${gpsCoords.lon}\n`;
-        }
-
-        if (note || activeTags.length > 0) {
-            msg += `📝 Ghi chú: ${activeTags.join(", ")} ${note}`;
-        }
-        return msg;
-    };
-
-    const handleCheckoutAndCopy = () => {
-            if (!address && !selectedKCN) {
-                alert("Vui lòng cho biết bạn đang ở đâu (GPS hoặc Chọn KCN) trước khi chốt đơn!");
-                return;
-            }
-
-            // 🔥 LOGIC CHẶN 5 LY Ở ĐÂY 🔥
-            if (totalItems < 5) {
-                alert(`Dạ quán chỉ nhận giao hàng tận nơi cho đơn từ 5 ly trở lên.\n\nGiỏ hàng của bạn đang có ${totalItems} ly. Vui lòng chọn thêm ${5 - totalItems} ly nữa để chốt đơn nhé! 🧋`);
-                return; // Dừng lại, không cho chạy tiếp xuống dưới
-            }
-
-            const finalMessage = generateOrderMessage();
-            let counts = {};
-            cart.forEach(x => counts[x.name] = (counts[x.name] || 0) + 1);
-
-            let finalNote = activeTags.join(", ") + (note ? ", " + note : "") + ` | Trả: ${paymentMethod}`;
-            if (gpsCoords) {
-                finalNote += ` | Map: https://maps.google.com/?q=${gpsCoords.lat},${gpsCoords.lon}`;
-            }
-
-            const orderData = {
-                store: currentStore?.id,
-                customer_name: customerName,
-                customer_phone: customerPhone,
-                address: (selectedKCN ? `[${selectedKCN}] ` : "") + address,
-                note: finalNote,
-                total_price: totalPrice,
-                items: Object.keys(counts).map(name => ({
-                    product_name: name, quantity: counts[name], price: cart.find(i => i.name === name).price
-                }))
-            };
-
-            navigator.clipboard.writeText(finalMessage).then(() => {
-                fetch('https://alo-do-uong.onrender.com/api/orders/', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(orderData)
-                }).catch(err => console.log("Lỗi lưu DB", err));
-
-                alert("✅ Đã chép tin nhắn giỏ hàng!\n\nZalo sẽ mở ra, bạn chỉ cần DÁN (Ctrl+V) vào ô chat và gửi cho quán nhé.");
-                window.open(`https://zalo.me/${currentStore?.phone}`, '_blank');
-                setCart([]);
-                setShowModal(false);
-            }).catch(() => {
-                alert("Trình duyệt không hỗ trợ copy tự động. Vui lòng copy tay nội dung bên trên.");
-            });
-        };
-
-    // ==========================================
-    // 4. CSS DÀNH RIÊNG CHO WEBSITE PC
-    // ==========================================
-    const webStyles = `
-        @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap');
-        body, html { margin: 0; padding: 0; overflow-x: hidden; background-color: #f8f9fa; }
-        .zaui-header, .zaui-status-bar { display: none !important; }
-    `;
-
-    if (appState === 'splash') {
-        return (
-            <div className="d-flex flex-column justify-content-center align-items-center vh-100 m-0 p-0" style={{ backgroundColor: '#000' }}>
-                <style>{webStyles} {` .logo-zoom { animation: zoomInLogo 1.5s ease-out forwards; } @keyframes zoomInLogo { 0% { transform: scale(0); opacity: 0; } 70% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); opacity: 1; } } @keyframes dropBounce { 0% { transform: translateY(-50px); opacity: 0; } 50% { transform: translateY(10px); opacity: 1; } 70% { transform: translateY(-5px); } 100% { transform: translateY(0); opacity: 1; } } `}</style>
-                <img src="/logo.jpg" alt="Logo" className="logo-zoom" style={{ width: '150px', marginBottom: '20px', borderRadius: '20px' }} />
-                <div style={{ fontFamily: "'Baloo 2', cursive", fontSize: '2.5rem', fontWeight: '800' }}>
-                    {"Alo Đồ Uống".split("").map((char, index) => (
-                        <span key={index} style={{ display: 'inline-block', opacity: 0, animation: `dropBounce 0.6s ease forwards`, animationDelay: `${1.5 + index * 0.15}s`, background: 'linear-gradient(45deg, #00E5FF, #FF00FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', textShadow: '0px 0px 8px rgba(255,255,255,0.3)' }}>
-                            {char === " " ? "\u00A0" : char}
-                        </span>
-                    ))}
-                </div>
+  return (
+    <div style={{ paddingBottom: 110 }}>
+      {/* Header & Categories */}
+      <div style={{ padding: "20px 16px", background: "white", borderRadius: "0 0 32px 32px", boxShadow: "0 4px 20px rgba(0,0,0,0.06)", position: "sticky", top: 0, zIndex: 50 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 18 }}>
+          <button onClick={onChangeStore} style={{ border: "none", background: "#f0f4ff", color: "var(--accent)", width: 42, height: 42, borderRadius: "50%", fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>⬅️</button>
+          <div>
+            <div style={{ fontSize: 12, color: "var(--muted)", fontWeight: 600 }}>Đang mua tại</div>
+            <div style={{ fontSize: 20, fontWeight: 800, color: "#1a1a2e", display: "flex", alignItems: "center", gap: 6 }}>
+              {storeData.name}
+              <span style={{ fontSize: 11, background: isOpen ? "#d4f5e9" : "#ffe0e0", color: isOpen ? "#0a6e47" : "#b02020", padding: "3px 10px", borderRadius: 20, fontWeight: 700 }}>{isOpen ? "Mở cửa" : "Tạm nghỉ"}</span>
             </div>
-        );
-    }
-
-    if (appState === 'stores') {
-        return (
-            <div className="container-fluid m-0 p-0 d-flex flex-column align-items-center justify-content-center" style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', fontFamily: "'Baloo 2', cursive" }}>
-                <style>{webStyles}</style>
-                <img src="/logo.jpg" alt="Logo" style={{ width: '80px', borderRadius: '15px', marginBottom: '15px', boxShadow: '0 4px 10px rgba(0,0,0,0.2)' }} />
-                <h2 className="text-center fw-bold mb-4" style={{ background: 'linear-gradient(45deg, #00E5FF, #FF00FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontSize: '2rem' }}>
-                    Hôm nay bạn muốn đặt ở đâu?
-                </h2>
-                <div className="d-flex flex-column gap-3 w-100 px-3" style={{ maxWidth: '500px' }}>
-                    {stores.length === 0 ? (
-                        <div className="text-center text-muted"><div className="spinner-border text-info" role="status"></div><p className="mt-2 fs-5">Đang tìm các quán gần bạn...</p></div>
-                    ) : (
-                        stores.map(store => (
-                            <button key={store.id} className="btn btn-white btn-lg text-start fw-bold shadow-sm p-3 rounded-4 d-flex align-items-center justify-content-between bg-white border-0" onClick={() => { setCurrentStore(store); setAppState('menu'); }} style={{ fontSize: '1.2rem', color: '#333' }}>
-                                <span>🏪 {store.name}</span><i className="bi bi-chevron-right" style={{ color: '#00E5FF' }}></i>
-                            </button>
-                        ))
-                    )}
-                </div>
-            </div>
-        );
-    }
-
-    return (
-        <div className="m-0 p-0" style={{ paddingBottom: '150px', backgroundColor: '#f8f9fa', minHeight: '100vh', fontFamily: "'Baloo 2', cursive" }}>
-            <style>{webStyles}</style>
-            
-            {/* Nút gọi điện có thể kéo thả */}
-            <DraggableCallButton phone={currentStore?.phone} />
-            
-            {/* 🔥 THANH HEADER (Đã gỡ nút gọi điện ra) 🔥 */}
-            <div className="bg-white shadow-sm p-2 d-flex align-items-center justify-content-between" style={{ position: 'sticky', top: 0, zIndex: 1000 }}>
-                <div className="d-flex align-items-center" style={{ maxWidth: '100%' }}>
-                    <button className="btn btn-light rounded-circle me-2 flex-shrink-0" onClick={() => setAppState('stores')}>
-                        <i className="bi bi-arrow-left fs-5"></i>
-                    </button>
-                    <span className="fw-bold fs-5 text-truncate" style={{ background: 'linear-gradient(45deg, #00E5FF, #FF00FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                        {currentStore?.name || "Cửa hàng"}
-                    </span>
-                </div>
-                {/* Thẻ <a> gọi điện cũ ở đây đã được xóa bỏ */}
-            </div>
-
-            <div className="text-center py-4 mb-4 position-relative overflow-hidden shadow-sm" style={{ backgroundColor: '#ffffff', borderRadius: '0 0 35px 35px', borderBottom: '2px solid rgba(0, 229, 255, 0.3)' }}>
-                <div style={{ position: 'absolute', top: '-20px', left: '-20px', width: '100px', height: '100px', background: 'rgba(0, 229, 255, 0.15)', borderRadius: '50%', filter: 'blur(25px)' }}></div>
-                <div style={{ position: 'absolute', bottom: '-20px', right: '-20px', width: '100px', height: '100px', background: 'rgba(255, 0, 255, 0.15)', borderRadius: '50%', filter: 'blur(25px)' }}></div>
-                <h2 className="fw-bold mb-2 text-uppercase position-relative" style={{ background: 'linear-gradient(45deg, #00E5FF, #FF00FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', letterSpacing: '1px', fontSize: '1.8rem', lineHeight: '1.2' }}>{currentStore?.name || "Cửa hàng"}</h2>
-                <div className="d-inline-block px-3 py-1 rounded-pill position-relative" style={{ background: 'rgba(255, 0, 255, 0.05)', border: '1px solid rgba(255, 0, 255, 0.2)' }}><small style={{ color: '#FF00FF', fontWeight: 'bold', letterSpacing: '0.5px', fontSize: '0.85rem' }}>✨ Thơm ngon - Giao tận nơi ✨</small></div>
-            </div>
-
-            <div className="container" style={{ maxWidth: '600px' }}>
-                <div className="card p-3 mb-4 border-0 shadow-sm rounded-4 bg-white">
-                    <div className="d-flex gap-2 mb-2">
-                        <input type="text" className="form-control shadow-none bg-light border-0" placeholder="📍 Địa chỉ chi tiết (VD: Cổng số 1...)" value={address} onChange={(e) => setAddress(e.target.value)} />
-                        <button className="btn btn-outline-dark border-0 bg-light text-primary" onClick={getLocation} title="Lấy GPS hiện tại"><i className="bi bi-crosshair" style={{ color: '#00E5FF' }}></i></button>
-                    </div>
-                    <select className="form-select shadow-none mb-2 border-0 bg-light" value={selectedKCN} onChange={(e) => setSelectedKCN(e.target.value)}>
-                        <option value="">-- Chọn Khu Công Nghiệp (Nếu có) --</option>
-                        <option value="KCN Đại Đăng">🏭 KCN Đại Đăng</option>
-                        <option value="KCN Sóng Thần 3">🏭 KCN Sóng Thần 3</option>
-                        <option value="KCN Kim Huy">🏭 KCN Kim Huy</option>
-                        <option value="Mang về">🛍️ Ghé lấy mang về</option>
-                    </select>
-                    <div className="d-flex align-items-center gap-2">
-                        <input type="text" className="form-control shadow-none border-0 bg-light" placeholder="Ghi chú (VD: Ít đường...)" value={note} onChange={(e) => setNote(e.target.value)} />
-                        <button className="btn btn-light rounded-circle border-0" type="button" onClick={() => setShowTags(!showTags)} style={{ width: '40px', height: '40px', background: '#eee' }}><i className="bi bi-tags"></i></button>
-                    </div>
-                    {showTags && (
-                        <div className="mt-2">
-                            {noteTagsList.map(tag => (
-                                <span key={tag} className={`note-option ${activeTags.includes(tag) ? 'active' : ''}`} onClick={() => toggleTag(tag)} style={{ display: 'inline-block', margin: '3px', padding: '6px 12px', background: activeTags.includes(tag) ? 'linear-gradient(45deg, #00E5FF, #FF00FF)' : '#eee', color: activeTags.includes(tag) ? '#fff' : '#555', borderRadius: '20px', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold', border: 'none' }}>{tag}</span>
-                            ))}
-                        </div>
-                    )}
-                </div>
-
-                <div className="sticky-top py-2 mb-3 rounded-4" style={{ top: '60px', zIndex: 900, backgroundColor: '#f8f9fa' }}>
-                    <div className="d-flex overflow-auto px-1 pb-2" style={{ whiteSpace: 'nowrap', scrollbarWidth: 'none' }}>
-                        {categoriesFromDB.map(cat => (
-                            <button key={cat} className={`btn btn-sm rounded-pill me-2 px-4 py-2 fw-bold shadow-sm border-0 ${filterCategory === cat ? 'text-white' : 'bg-white'}`} onClick={() => setFilterCategory(cat)} style={{ background: filterCategory === cat ? 'linear-gradient(45deg, #00E5FF, #FF00FF)' : '#fff', color: filterCategory === cat ? '#fff' : '#666' }}>
-                                {cat === 'all' ? 'Tất cả' : cat}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
-                <div className="row g-3">
-                    {filteredData.length === 0 ? (
-                        <div className="text-center text-muted py-5 w-100"><i className="bi bi-inbox fs-1"></i><p className="mt-2">Quán này chưa lên menu...</p></div>
-                    ) : (
-                        filteredData.map(item => (
-                            <div className="col-6" key={item.id}>
-                                <div className="card h-100 border-0 shadow-sm rounded-4 overflow-hidden bg-white">
-                                    <img src={item.img} className="card-img-top" alt={item.name} onError={(e) => e.target.src='https://via.placeholder.com/300?text=App+Bán+Hàng'} style={{ height: '140px', objectFit: 'cover' }} />
-                                    <div className="card-body p-3 d-flex flex-column">
-                                        <h6 className="card-title fw-bold mb-1 text-truncate" style={{ fontSize: '0.95rem' }}>{item.name}</h6>
-                                        <div className="mt-auto d-flex justify-content-between align-items-center pt-2">
-                                            <span className="fw-bold" style={{ color: '#FF00FF', fontSize: '1rem' }}>{formatMoney(item.price)}</span>
-                                            <button className="btn btn-sm rounded-circle d-flex align-items-center justify-content-center text-white shadow-sm" style={{ width: '32px', height: '32px', background: 'linear-gradient(45deg, #00E5FF, #FF00FF)', border: 'none' }} onClick={() => addToCart(item)}><i className="bi bi-plus fs-5"></i></button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        ))
-                    )}
-                </div>
-                
-                {/* Lớp đệm vô hình cực to ở đáy để đẩy Menu lên khỏi Giỏ hàng */}
-                <div style={{ height: '100px', width: '100%' }}></div>
-            </div>
-
-            {/* Float Giỏ Hàng */}
-            {cart.length > 0 && (
-                <div className="position-fixed w-100 d-flex justify-content-center" style={{ bottom: '25px', zIndex: 1040, left: 0 }} onClick={handleOpenCart}>
-                    <div className="bg-white shadow-lg rounded-pill p-2 d-flex align-items-center justify-content-between" style={{ width: '92%', maxWidth: '400px', border: '2px solid #00E5FF', cursor: 'pointer' }}>
-                        <div className="d-flex align-items-center">
-                            <div className="text-white rounded-circle d-flex align-items-center justify-content-center me-2 fw-bold shadow-sm" style={{ width: '38px', height: '38px', backgroundColor: '#111', fontSize: '1.1rem' }}>{totalItems}</div>
-                            <div>
-                                <small className="text-muted d-block" style={{ fontSize: '11px', lineHeight: '1' }}>Tổng tiền:</small>
-                                <span className="fw-bold" style={{ fontSize: '1.1rem', background: 'linear-gradient(45deg, #00E5FF, #FF00FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{formatMoney(totalPrice)}</span>
-                            </div>
-                        </div>
-                        <button className="btn rounded-pill px-3 py-2 fw-bold shadow-sm text-white border-0" style={{ fontSize: '14px', background: 'linear-gradient(45deg, #00E5FF, #FF00FF)' }}>
-                            Xem & Đặt <i className="bi bi-chevron-up"></i>
-                        </button>
-                    </div>
-                </div>
-            )}
-
-            {/* 🔥 MODAL ĐĂNG NHẬP THÔNG TIN */}
-            {showAuthModal && (
-                <div className="modal fade show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 1100 }} tabIndex="-1">
-                    <div className="modal-dialog modal-dialog-centered">
-                        <div className="modal-content border-0 shadow-lg rounded-4 p-4">
-                            <div className="text-center mb-4">
-                                <h4 className="fw-bold" style={{ background: 'linear-gradient(45deg, #00E5FF, #FF00FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                                    Thông tin liên hệ
-                                </h4>
-                                <small className="text-muted">Quán sẽ gọi cho bạn theo số này để xác nhận đơn</small>
-                            </div>
-                            
-                            <div className="mb-3">
-                                <label className="form-label fw-bold text-muted small">Tên của bạn</label>
-                                <input type="text" className="form-control form-control-lg bg-light border-0 shadow-none rounded-3" 
-                                    placeholder="Nhập tên..." 
-                                    value={customerName} 
-                                    onChange={(e) => setCustomerName(e.target.value)} 
-                                />
-                            </div>
-                            
-                            <div className="mb-4">
-                                <label className="form-label fw-bold text-muted small">Số điện thoại Zalo</label>
-                                <input type="tel" className="form-control form-control-lg bg-light border-0 shadow-none rounded-3" 
-                                    placeholder="Ví dụ: 0901234567" 
-                                    value={customerPhone} 
-                                    onChange={(e) => setCustomerPhone(e.target.value)} 
-                                />
-                            </div>
-
-                            <div className="d-flex gap-2">
-                                <button className="btn btn-light rounded-pill w-50 py-2 fw-bold" onClick={() => setShowAuthModal(false)}>Quay lại</button>
-                                <button className="btn text-white rounded-pill w-50 py-2 fw-bold shadow-sm" 
-                                    style={{ background: 'linear-gradient(45deg, #00E5FF, #FF00FF)', border: 'none' }}
-                                    onClick={handleSaveUserInfo}>
-                                    Tiếp tục <i className="bi bi-arrow-right"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* MODAL GIỎ HÀNG */}
-            {showModal && (
-                <div className="modal fade show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 1050 }} tabIndex="-1">
-                    <div className="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-                        <div className="modal-content border-0 shadow-lg rounded-4">
-                            
-                            <div className="modal-header border-0 pb-2 d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h4 className="modal-title fw-bold mb-0" style={{ background: 'linear-gradient(45deg, #00E5FF, #FF00FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                                        Giỏ hàng của bạn
-                                    </h4>
-                                    <small className="text-muted fs-6"><i className="bi bi-person-check-fill text-success"></i> {customerName} ({customerPhone})</small>
-                                </div>
-                                <button type="button" className="btn-close shadow-none" onClick={() => setShowModal(false)}></button>
-                            </div>
-
-                            <div className="modal-body pt-0 pb-3" style={{ overflowX: 'hidden' }}>
-                                {cart.length === 0 ? <p className="text-center text-muted py-4 fs-5">Giỏ hàng trống trơn...</p> : (
-                                    <div className="bg-white rounded-3 p-2 mb-3 shadow-sm border">
-                                        {cart.map((item, index) => (
-                                            <div className="d-flex justify-content-between align-items-center border-bottom py-2" key={index}>
-                                                <div className="pe-2">
-                                                    <h6 className="mb-1 fw-bold fs-6">{item.name}</h6>
-                                                    <span className="fw-bold" style={{ color: '#FF00FF', fontSize: '0.95rem' }}>{formatMoney(item.price)}</span>
-                                                </div>
-                                                <button className="btn btn-light text-danger rounded-circle p-2 shadow-sm border-0 d-flex align-items-center justify-content-center" style={{ width: '35px', height: '35px' }} onClick={() => removeFromCart(index)}>
-                                                    <i className="bi bi-trash fs-5"></i>
-                                                </button>
-                                            </div>
-                                        ))}
-                                        <div className="mt-3 d-flex justify-content-between align-items-center px-1">
-                                            <span className="fw-bold fs-5">Tổng cộng:</span>
-                                            <span className="fw-bold fs-3" style={{ background: 'linear-gradient(45deg, #00E5FF, #FF00FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{formatMoney(totalPrice)}</span>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {cart.length > 0 && (
-                                    <div className="p-3 rounded-4 shadow-sm mb-3" style={{ backgroundColor: '#f8f9fa', border: '1px solid #e0e0e0' }}>
-                                        <h6 className="fw-bold mb-3 fs-5 text-dark">💳 Phương thức thanh toán:</h6>
-                                        <div className="d-flex gap-4">
-                                            <label className="d-flex align-items-center cursor-pointer fw-bold fs-6">
-                                                <input type="radio" name="payment" value="Tiền mặt" checked={paymentMethod === "Tiền mặt"} onChange={(e) => setPaymentMethod(e.target.value)} className="me-2 form-check-input mt-0" style={{ transform: 'scale(1.2)' }} /> 💵 Tiền mặt
-                                            </label>
-                                            <label className="d-flex align-items-center cursor-pointer fw-bold fs-6" style={{ color: paymentMethod === "Chuyển khoản" ? '#FF00FF' : '#333' }}>
-                                                <input type="radio" name="payment" value="Chuyển khoản" checked={paymentMethod === "Chuyển khoản"} onChange={(e) => setPaymentMethod(e.target.value)} className="me-2 form-check-input mt-0" style={{ transform: 'scale(1.2)' }} /> 💳 Chuyển khoản
-                                            </label>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* QR CODE ĐƯỢC TÁCH RIÊNG VÀ LÀM CỰC TO */}
-                                {cart.length > 0 && paymentMethod === "Chuyển khoản" && (
-                                    <div className="p-3 rounded-4 shadow-sm mb-3 d-flex flex-column align-items-center justify-content-center" style={{ backgroundColor: '#fff', border: '2px dashed #FF00FF' }}>
-                                        <h6 className="fw-bold mb-2 text-center" style={{ color: '#FF00FF', fontSize: '1.1rem' }}>Quét mã để thanh toán</h6>
-                                        <img 
-                                            src={
-                                                currentStore?.qr_image 
-                                                ? (currentStore.qr_image.startsWith('http') 
-                                                    ? currentStore.qr_image 
-                                                    : `https://alo-do-uong.onrender.com${currentStore.qr_image.startsWith('/') ? '' : '/'}${currentStore.qr_image}`) 
-                                                : `https://img.vietqr.io/image/970436-123456789-compact2.png?amount=${totalPrice}&addInfo=Thanh toan do uong`
-                                            } 
-                                            alt="QR Code" 
-                                            onError={(e) => {
-                                                console.log("Lỗi load ảnh QR:", e.target.src);
-                                                e.target.src = `https://img.vietqr.io/image/970436-123456789-compact2.png?amount=${totalPrice}&addInfo=Loi_Anh_Tu_Dong_Chuyen`;
-                                            }}
-                                            style={{ width: '180px', height: '180px', objectFit: 'contain', border: '1px solid #eee', borderRadius: '10px', padding: '5px' }} 
-                                        />
-                                        <small className="text-muted mt-2 text-center">Nội dung CK: Tên + SĐT của bạn</small>
-                                    </div>
-                                )}
-
-                                {/* TIN NHẮN TÁCH XUỐNG DƯỚI, CHỐNG TRÀN VIỀN BẰNG word-break */}
-                                {cart.length > 0 && (
-                                    <div className="p-3 rounded-4 shadow-sm" style={{ backgroundColor: '#fdf9ec', border: '1px dashed #ccc', borderLeft: '4px solid #00E5FF' }}>
-                                        <h6 className="fw-bold mb-2" style={{ color: '#00E5FF', fontSize: '1rem' }}>Tin nhắn sẽ gửi qua Zalo:</h6>
-                                        <pre className="p-2 rounded-3 bg-white mb-0" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '14px', color: '#444', fontFamily: "monospace", lineHeight: '1.5', border: '1px solid #eee' }}>
-                                            {generateOrderMessage()}
-                                        </pre>
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="modal-footer border-0 pt-2 pb-3">
-                                {/* NÚT BẤM ĐÃ ĐƯỢC NÂNG CẤP LOGIC */}
-                                <button 
-                                    type="button" 
-                                    className="btn w-100 rounded-pill py-3 fw-bold shadow-lg text-white d-flex justify-content-center align-items-center" 
-                                    onClick={handleCheckoutAndCopy} 
-                                    style={{ 
-                                        background: totalItems >= 5 ? 'linear-gradient(45deg, #00E5FF, #FF00FF)' : '#b0b0b0', 
-                                        border: 'none', 
-                                        fontSize: '1.2rem',
-                                        cursor: totalItems >= 5 ? 'pointer' : 'not-allowed',
-                                        transition: 'all 0.3s ease'
-                                    }}
-                                >
-                                    {totalItems >= 5 ? (
-                                        <><i className="bi bi-send-fill fs-4 me-2"></i> Chốt đơn & Sang Zalo</>
-                                    ) : (
-                                        <><i className="bi bi-cart-x-fill fs-4 me-2"></i> Chọn thêm {5 - totalItems} ly để đặt</>
-                                    )}
-                                </button>
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-            )}
+          </div>
         </div>
-    );
-};
 
-export default HomePage;
+        <div style={{ overflowX: "auto", display: "flex", gap: 10, paddingBottom: 5 }} className="no-scroll">
+          <button onClick={() => setActiveCat(0)} style={{ padding: "10px 22px", borderRadius: 50, border: "none", whiteSpace: "nowrap", background: activeCat === 0 ? G : "#f4f6fb", color: activeCat === 0 ? "white" : "var(--text)", fontWeight: 800, fontSize: 13, cursor: "pointer", transition: "0.2s" }}>🌟 Tất cả</button>
+          {categories.map(c => (
+            <button key={c.id} onClick={() => setActiveCat(c.id)} style={{ padding: "10px 22px", borderRadius: 50, border: "none", whiteSpace: "nowrap", background: activeCat === c.id ? G : "#f4f6fb", color: activeCat === c.id ? "white" : "var(--text)", fontWeight: 800, fontSize: 13, cursor: "pointer", transition: "0.2s" }}>
+              {c.name}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Featured Suggestions */}
+      {activeCat === 0 && (
+        <div style={{ marginTop: 24 }}>
+          <div style={{ padding: "0 16px", marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <h2 style={{ fontSize: 19, fontWeight: 800 }}> Gợi ý cho bạn</h2>
+            <span style={{ fontSize: 13, color: "var(--accent)", fontWeight: 700 }}>Xem tất cả</span>
+          </div>
+          <div style={{ display: "flex", gap: 16, overflowX: "auto", padding: "0 16px 15px" }} className="no-scroll">
+            {featured.map(p => (
+              <div key={p.id} onClick={() => addToCart(p)} style={{ flexShrink: 0, width: 160, background: "white", borderRadius: 24, padding: 10, boxShadow: "0 4px 15px rgba(0,0,0,0.05)", border: "1px solid #f0f3f8" }}>
+                <div style={{ height: 110, background: G_SOFT, borderRadius: 18, marginBottom: 10, overflow: "hidden" }}>
+                  <img src={p.image_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                </div>
+                <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4 }}>{p.name}</div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div style={{ fontWeight: 800, color: "var(--accent)" }}>{fmt(p.price)}</div>
+                  <div style={{ fontSize: 10, color: p.stock > 0 ? "#64748b" : "#ef4444", fontWeight: 700 }}>
+                    {p.stock > 0 ? `Còn: ${p.stock}` : "Hết"}
+                  </div>
+                </div>
+
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Main List */}
+      <div style={{ padding: "20px 16px 12px", fontSize: 19, fontWeight: 800 }}>
+        {activeCat === 0 ? "🏮 Thực đơn hôm nay" : `🥤 ${categories.find(c => c.id === activeCat)?.name}`}
+      </div>
+      {loading ? <div style={{ padding: 50, textAlign: "center" }}><div className="dot-loader"><span></span><span></span><span></span></div></div> : (
+        <div className="products-grid">
+          {filtered.map(p => (
+            <div key={p.id} className="product-card" onClick={() => addToCart(p)}>
+              <div style={{ height: 140, background: G_SOFT }}><img src={p.image_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} /></div>
+              <div style={{ padding: 14 }}>
+                <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6, color: "#1a1a2e" }}>{p.name}</div>
+                <div style={{ marginTop: 10, display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                  <div>
+                    <div style={{ color: "var(--accent)", fontWeight: 800, fontSize: 18 }}>{fmt(p.price)}</div>
+                    <div style={{ fontSize: 11, color: p.stock > 0 ? "#64748b" : "#ef4444", fontWeight: 600, marginTop: 2 }}>
+                      {p.stock > 0 ? `Còn lại: ${p.stock}` : "Hết hàng"}
+                    </div>
+                  </div>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); addToCart(p); }}
+                    style={{
+                      width: 35, height: 35, borderRadius: 12, border: "none",
+                      background: p.stock > 0 ? G : "#cbd5e1", color: "white", fontWeight: 800,
+                      cursor: p.stock > 0 ? "pointer" : "default"
+                    }}
+                    disabled={p.stock <= 0}
+                  >+</button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── CART PAGE ────────────────────────────────────────────────────────────────
+function CartPage({ cart, setCart, setPage, setToast }) {
+
+  const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const updateQty = (id, delta) => setCart(p => p.map(i => {
+    if (i.id === id) {
+      const newQty = i.qty + delta;
+      if (newQty > i.stock) {
+        setToast(`⚠️ Món này chỉ còn ${i.stock} suất thôi bạn ơi!`);
+        return i;
+      }
+
+
+      return { ...i, qty: Math.max(0, newQty) };
+    }
+    return i;
+  }).filter(i => i.qty > 0));
+
+
+  const activeCart = cart.filter(i => i.selected !== false);
+  const totalQty = activeCart.reduce((s, i) => s + i.qty, 0);
+  const total = activeCart.reduce((s, i) => s + i.price * i.qty, 0);
+
+  if (cart.length === 0) return <div style={{ padding: 120, textAlign: "center" }}><div style={{ fontSize: 80 }}>🛒</div><div style={{ fontWeight: 800, fontSize: 22, marginTop: 15, color: "#1a1a2e" }}>Giỏ hàng đang trống</div><p style={{ color: "var(--muted)", marginTop: 8 }}>Mời bạn quay lại chọn món ngon nhé!</p><button onClick={() => setPage("home")} className="btn-grad" style={{ padding: "14px 28px", marginTop: 25, fontSize: 16 }}>Quay lại mua sắm</button></div>;
+
+  return (
+    <div style={{ padding: "24px 16px 140px" }}>
+      <h2 style={{ marginBottom: 25, fontWeight: 800, fontSize: 24 }}>🛒 Giỏ hàng của bạn</h2>
+      {cart.map(i => (
+        <div key={i.id} style={{ background: "white", padding: 16, borderRadius: 24, marginBottom: 15, display: "flex", gap: 16, alignItems: "center", boxShadow: "0 4px 15px rgba(0,0,0,0.04)", border: "1px solid #f0f3f8", opacity: i.selected === false ? 0.5 : 1 }}>
+          <input 
+            type="checkbox" 
+            checked={i.selected !== false} 
+            onChange={(e) => setCart(prev => prev.map(item => item.id === i.id ? { ...item, selected: e.target.checked } : item))}
+            style={{ width: 22, height: 22, accentColor: "#00c896", cursor: "pointer", flexShrink: 0 }}
+          />
+          <img src={i.image_url} style={{ width: 80, height: 80, borderRadius: 18, objectFit: "cover" }} />
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+            <div style={{ fontWeight: 700, fontSize: 17, color: "#1a1a2e" }}>{i.name}</div>
+            <div style={{ color: "var(--accent)", fontWeight: 800, fontSize: 14, marginTop: 4 }}>{fmt(i.price)}</div>
+            {/* Ghi chú sản phẩm */}
+            <input
+              type="text"
+              placeholder="Ghi chú..."
+              value={i.note || ""}
+              onChange={(e) => {
+                const val = e.target.value;
+                setCart(prev => prev.map(item => item.id === i.id ? { ...item, note: val } : item));
+              }}
+              style={{
+                width: "100%", padding: "4px 8px", marginTop: 6, fontSize: 11,
+                border: "1px solid #f0f3f8", borderRadius: 6, outline: "none",
+                background: "#f8fafc", color: "#64748b"
+              }}
+            />
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", justifyContent: "space-between", gap: 10 }}>
+            <div style={{ fontWeight: 800, fontSize: 17, color: "#1a1a2e" }}>{fmt(i.price * i.qty)}</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <button
+                onClick={() => updateQty(i.id, -1)}
+                style={{
+                  width: 28, height: 28, borderRadius: 8, border: "1px solid #e2e8f0",
+                  background: "#f8fafc", color: "#1e293b", fontWeight: 800, cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center"
+                }}
+              >-</button>
+              <span style={{ fontWeight: 800, fontSize: 15, minWidth: 15, textAlign: "center" }}>{i.qty}</span>
+              <button
+                onClick={() => updateQty(i.id, 1)}
+                style={{
+                  width: 28, height: 28, borderRadius: 8, border: "none",
+                  background: "#00c896", color: "white", fontWeight: 800, cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center"
+                }}
+              >+</button>
+            </div>
+          </div>
+
+        </div>
+      ))}
+      <div style={{ position: "fixed", bottom: 85, left: 0, right: 0, width: "100%", padding: "10px 20px", background: "white", zIndex: 90, borderTop: "1px solid #f0f3f8", display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+
+        {totalQty < 5 && (
+          <div style={{ color: "#ef4444", fontSize: 13, fontWeight: 700 }}>
+            ⚠️ Bạn cần chọn thêm {5 - totalQty} món nữa để giao hàng!
+          </div>
+        )}
+
+        <button
+          onClick={() => {
+            if (totalQty < 5) {
+              alert("Bạn cần chọn tối thiểu 5 món để đặt hàng nhé!");
+              return;
+            }
+            setPage("checkout");
+          }}
+          className="btn-grad"
+          style={{
+            width: "100%", maxWidth: 500, height: 55, borderRadius: 30, border: "none",
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            padding: "0 30px", fontSize: 16, fontWeight: 800, color: "white",
+            boxShadow: "0 10px 25px rgba(0,200,150,0.3)", cursor: "pointer",
+            opacity: totalQty < 5 ? 0.6 : 1,
+            filter: totalQty < 5 ? "grayscale(1)" : "none"
+          }}
+        >
+          <span>{totalQty < 5 ? "CHƯA ĐỦ 5 MÓN" : "ĐẶT HÀNG NGAY"}</span>
+          <span style={{ fontSize: 18 }}>{fmt(total)}</span>
+        </button>
+      </div>
+
+
+
+    </div>
+  );
+}
+
+// ─── CHECKOUT PAGE ────────────────────────────────────────────────────────────
+function CheckoutPage({ cart, storeData, setPage, setToast, setOrders, isOpen, clearCart }) {
+  const [name, setName] = useState(localStorage.getItem("alo_name") || "");
+  const [phone, setPhone] = useState(localStorage.getItem("alo_phone") || "");
+  const [addr, setAddr] = useState(localStorage.getItem("alo_addr") || "");
+  const [gps, setGps] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [distance, setDistance] = useState(0);
+  const [shippingFee, setShippingFee] = useState(0);
+
+  const calculateDistance = (uLat, uLng) => {
+    if (!storeData || !storeData.latitude) return 1;
+    const R = 6371;
+    const dLat = (uLat - storeData.latitude) * Math.PI / 180;
+    const dLon = (uLng - storeData.longitude) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(storeData.latitude * Math.PI / 180) * Math.cos(uLat * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
+
+  const getLocation = () => {
+    navigator.geolocation.getCurrentPosition(pos => {
+      const d = calculateDistance(pos.coords.latitude, pos.coords.longitude);
+      setDistance(d);
+      setShippingFee(d < 5 ? 0 : Math.round(d * 3000));
+      setGps(`${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`);
+      setToast("Đã xác định vị trí & phí ship! 📍");
+    });
+  };
+
+  const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const finalTotal = total + shippingFee;
+  const isFormValid = name.trim() && phone.trim() && addr.trim();
+
+  const handleSubmit = async () => {
+    if (!isFormValid) {
+        alert("⚠️ Bạn ơi, vui lòng điền đầy đủ: Họ tên, Số điện thoại và Địa chỉ nhé!");
+        return;
+    }
+    if (!isOpen) {
+      setToast("Quán đang tạm nghỉ, hẹn bạn lúc khác nhé!");
+      window.scrollTo(0, 0);
+      return;
+    }
+    setLoading(true);
+    localStorage.setItem("alo_name", name);
+    localStorage.setItem("alo_phone", phone);
+    localStorage.setItem("alo_addr", addr);
+
+    const payload = {
+      store: storeData.id, customer_name: name, customer_phone: phone, address: `${addr} (GPS: ${gps})`,
+      total_price: finalTotal, items: cart.map(i => ({ product_name: i.name, quantity: i.qty, price: i.price, note: i.note }))
+    };
+
+    try {
+      const res = await fetch(`${API_URL}/orders/create/`, {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (res.ok) {
+        const hist = JSON.parse(localStorage.getItem("alo_orders") || "[]");
+        const newO = { order_code: data.order_code, status: "Chờ xử lý", date: new Date().toLocaleString(), totalPrice: finalTotal, items: cart };
+        localStorage.setItem("alo_orders", JSON.stringify([newO, ...hist]));
+        setOrders([newO, ...hist]);
+        clearCart();
+        setPage("history");
+        alert("🎉 Đặt hàng thành công! Mã đơn của bạn là: #" + data.order_code);
+      } else {
+        alert("❌ Lỗi: " + (data.error || "Không thể đặt hàng, vui lòng kiểm tra lại!"));
+      }
+    } catch (e) {
+      alert("❌ Lỗi kết nối máy chủ! Vui lòng kiểm tra lại mạng.");
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div style={{ padding: "24px 16px 120px" }}>
+      <h2 style={{ marginBottom: 25, fontWeight: 800, fontSize: 24 }}>📍 Giao hàng đến</h2>
+      <div style={{ background: "white", padding: 24, borderRadius: 24, display: "flex", flexDirection: "column", gap: 18, boxShadow: "0 8px 25px rgba(0,0,0,0.05)", border: "1px solid #f0f3f8" }}>
+        <input className="input-field" placeholder="Họ tên của bạn" value={name} onChange={e => setName(e.target.value)} />
+        <input className="input-field" placeholder="Số điện thoại" value={phone} onChange={e => setPhone(e.target.value)} />
+
+        <div style={{ display: "flex", gap: 10 }}>
+          <input className="input-field" placeholder="Vị trí GPS" value={gps} readOnly style={{ flex: 1, background: "#f8fafc", fontSize: 13 }} />
+          <button onClick={getLocation} className="btn-grad" style={{ padding: "0 18px", fontSize: 13, borderRadius: 16 }}>📍 Lấy GPS</button>
+        </div>
+        <input className="input-field" placeholder="Địa chỉ chi tiết (Số nhà, đường...)" value={addr} onChange={e => setAddr(e.target.value)} />
+      </div>
+
+      <div style={{ marginTop: 30, background: "white", padding: 24, borderRadius: 24, boxShadow: "0 8px 25px rgba(0,0,0,0.05)", border: "1px solid #f0f3f8" }}>
+        <div style={{ fontWeight: 800, marginBottom: 18, fontSize: 18 }}>Tóm tắt đơn hàng</div>
+        {cart.map(i => <div key={i.id} style={{ display: "flex", justifyContent: "space-between", marginBottom: 10, fontSize: 15 }}><span>{i.name} x{i.qty}</span><span style={{ fontWeight: 700 }}>{fmt(i.price * i.qty)}</span></div>)}
+        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 12, fontSize: 15, color: "var(--muted)", fontWeight: 600 }}>
+          <span>Phí vận chuyển ({distance > 0 ? `${distance.toFixed(1)}km` : "Chưa định vị"})</span>
+          <span>{shippingFee === 0 ? "Miễn phí" : fmt(shippingFee)}</span>
+        </div>
+        <div style={{ borderTop: "2px dashed #eee", marginTop: 15, paddingTop: 15, display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: 22 }}>
+          <span>Tổng cộng</span><span style={{ color: "var(--accent)" }}>{fmt(finalTotal)}</span>
+        </div>
+      </div>
+
+      <button
+        onClick={handleSubmit}
+        disabled={loading || !isOpen}
+        className="btn-grad"
+        style={{
+          width: "100%", padding: 20, marginTop: 35, fontSize: 18, fontWeight: 800,
+          boxShadow: isOpen ? "0 10px 25px rgba(41,121,255,0.4)" : "none",
+          opacity: isOpen ? 1 : 0.6,
+          filter: isOpen ? "none" : "grayscale(0.8)",
+          cursor: (!isOpen || loading) ? "not-allowed" : "pointer"
+        }}
+      >
+        {loading ? "ĐANG XỬ LÝ..." : (!isOpen ? "QUÁN ĐANG TẠM NGHỈ" : "XÁC NHẬN ĐẶT HÀNG")}
+      </button>
+    </div>
+  );
+}
+
+
+// ─── HISTORY PAGE ─────────────────────────────────────────────────────────────
+
+function HistoryPage({ orders, isSyncing, onRefresh }) {
+  const getStatusStyle = (s) => {
+    switch(s) {
+      case "Hoàn thành": return { bg: "#d4f5e9", color: "#0a6e47" };
+      case "Đã hủy": return { bg: "#ffe0e0", color: "#b02020" };
+      case "Đang giao": return { bg: "#fff0cc", color: "#8a5d00" };
+      case "Đang xử lý": return { bg: "#f3e8ff", color: "#6b21a8" };
+      case "Chờ xác nhận":
+      case "Chờ xử lý": return { bg: "#deeeff", color: "#0d4a8a" };
+      default: return { bg: "#f1f5f9", color: "#64748b" };
+    }
+  };
+
+  if (orders.length === 0) return <div style={{ padding: 120, textAlign: "center" }}><div style={{ fontSize: 70 }}>📜</div><div style={{ fontWeight: 800, fontSize: 20, marginTop: 15 }}>Chưa có đơn hàng nào</div><button onClick={() => window.location.reload()} className="btn-grad" style={{ padding: "10px 20px", marginTop: 20 }}>Tải lại trang</button></div>;
+  return (
+    <div style={{ padding: "24px 16px 120px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 25 }}>
+        <h2 style={{ margin: 0, fontWeight: 800, fontSize: 24 }}>📜 Lịch sử đơn hàng</h2>
+        <button 
+          onClick={onRefresh} 
+          disabled={isSyncing}
+          style={{ background: "#f8fafc", border: "1px solid #e2e8f0", padding: "8px 12px", borderRadius: 12, fontSize: 12, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 6, color: "#475569" }}
+        >
+          {isSyncing ? "⏳ Đang quét..." : "🔄 Cập nhật ngay"}
+        </button>
+      </div>
+      {orders.map((o, idx) => {
+        const style = getStatusStyle(o.status);
+        return (
+          <div key={idx} style={{ background: "white", padding: 20, borderRadius: 24, marginBottom: 16, boxShadow: "0 4px 15px rgba(0,0,0,0.04)", border: "1px solid #f0f3f8", position: "relative" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
+              <span style={{ fontWeight: 800, fontSize: 17 }}>Đơn #{o.order_code}</span>
+              <span style={{ background: style.bg, color: style.color, padding: "4px 14px", borderRadius: 20, fontSize: 12, fontWeight: 800, transition: "all 0.3s" }}>{o.status}</span>
+            </div>
+            <div style={{ fontSize: 13, color: "var(--muted)", fontWeight: 500 }}>{o.date}</div>
+            <div style={{ marginTop: 15, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: 14, color: "#1a1a2e", fontWeight: 600 }}>{o.items?.reduce((s, i) => s + i.qty, 0)} ly</span>
+              <span style={{ fontWeight: 800, color: "var(--accent)", fontSize: 19 }}>{fmt(o.totalPrice)}</span>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── MAIN APP ─────────────────────────────────────────────────────────────────
+export default function App() {
+  const [page, setPage] = useState("home");
+  const [cart, setCart] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [storeData, setStoreData] = useState(null);
+  const [toast, setToast] = useState("");
+  const [showSplash, setShowSplash] = useState(true);
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  useEffect(() => {
+    const savedO = JSON.parse(localStorage.getItem("alo_orders") || "[]");
+    setOrders(savedO);
+    if (page === "history") syncOrders(savedO);
+    // Luôn bắt đầu bằng việc chọn cửa hàng mới để đảm bảo đúng quy trình bạn yêu cầu
+    localStorage.removeItem("selected_store_id");
+    setStoreData(null);
+    
+    setTimeout(() => setShowSplash(false), 2000);
+    
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    
+    // Tự động đồng bộ trạng thái đơn hàng mỗi 10 giây khi đang ở trang lịch sử
+    let syncTimer;
+    if (page === "history") {
+      syncTimer = setInterval(() => {
+        const currentO = JSON.parse(localStorage.getItem("alo_orders") || "[]");
+        syncOrders(currentO);
+      }, 5000); // Tăng tần suất lên 5 giây
+    }
+
+    return () => {
+      clearInterval(timer);
+      if (syncTimer) clearInterval(syncTimer);
+    };
+  }, [page]);
+
+  const syncOrders = async (list) => {
+    if (!list || list.length === 0) return;
+    setIsSyncing(true);
+    const updated = await Promise.all(list.map(async (o) => {
+      try {
+        const res = await fetch(`${API_URL}/orders/track/${o.order_code}/?_t=${Date.now()}`);
+        if (res.ok) {
+          const data = await res.json();
+          return { ...o, status: data.status };
+        } else if (res.status === 404) {
+           console.warn(`Đơn hàng ${o.order_code} không tồn tại trên máy chủ`);
+        }
+      } catch (e) {
+        console.error("Lỗi đồng bộ đơn:", o.order_code, e);
+      }
+      return o;
+    }));
+    setOrders(updated);
+    localStorage.setItem("alo_orders", JSON.stringify(updated));
+    setIsSyncing(false);
+  };
+
+  const handleStoreSelect = (s) => {
+    setStoreData(s);
+    localStorage.setItem("selected_store_id", s.id);
+    setPage("home");
+  };
+
+  const handleToast = (m) => { setToast(m); setTimeout(() => setToast(""), 2500); };
+
+  const isOpen = () => {
+    if (!storeData || !storeData.is_active) return false;
+    const cur = currentTime.getHours() * 60 + currentTime.getMinutes();
+    const [oh, om] = (storeData.opening_time || "07:00").split(":").map(Number);
+    const [ch, cm] = (storeData.closing_time || "22:00").split(":").map(Number);
+
+    const openMin = oh * 60 + om;
+    const closeMin = ch * 60 + cm;
+
+    if (closeMin < openMin) {
+      // Mở cửa xuyên đêm (VD: 07:00 đến 02:00 sáng hôm sau)
+      return cur >= openMin || cur <= closeMin;
+    } else {
+      // Mở cửa trong ngày (VD: 07:00 đến 22:00)
+      return cur >= openMin && cur <= closeMin;
+    }
+  };
+
+  if (showSplash) return (
+    <div style={{ minHeight: "100vh", background: G, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "white" }}>
+      <style>{globalStyle}</style>
+      <div style={{ fontSize: 80, marginBottom: 25, animation: "bounce 2s infinite" }}>🧉</div>
+      <h1 style={{ fontSize: 36, fontWeight: 800, letterSpacing: "-1px" }}>Alo Đồ Uống</h1>
+      <style>{`@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }`}</style>
+    </div>
+  );
+
+  if (!storeData) return (
+    <div className="app-shell">
+      <style>{globalStyle}</style>
+      <StorePicker onSelect={handleStoreSelect} />
+    </div>
+  );
+
+  return (
+    <div className="app-shell">
+      <style>{globalStyle}</style>
+      <Toast msg={toast} />
+
+      {page === "home" && <HomePage cart={cart} setCart={setCart} setToast={handleToast} setPage={setPage} storeData={storeData} isOpen={isOpen()} onChangeStore={() => { localStorage.removeItem("selected_store_id"); setStoreData(null); }} />}
+      {page === "cart" && <CartPage cart={cart} setCart={setCart} setPage={setPage} setToast={handleToast} />}
+
+
+      {page === "checkout" && <CheckoutPage cart={cart.filter(i => i.selected !== false)} storeData={storeData} setPage={setPage} setToast={handleToast} setOrders={setOrders} isOpen={isOpen()} clearCart={() => setCart(prev => prev.filter(i => i.selected === false))} />}
+      {page === "history" && <HistoryPage orders={orders} isSyncing={isSyncing} onRefresh={() => syncOrders(orders)} />}
+
+      <nav className="bottom-nav" style={{
+        height: 75, background: "#fff", borderTop: "1px solid #f0f2f8",
+        display: "flex", justifyContent: "space-around", alignItems: "center",
+        boxShadow: "0 -5px 20px rgba(0,0,0,0.03)"
+      }}>
+        <button className={`nav-item ${page === "home" ? "active" : ""}`} onClick={() => setPage("home")} style={{ background: "none", border: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+          <span style={{ fontSize: 24 }}>🏠</span>
+          <span style={{ fontSize: 11, fontWeight: 700, color: page === "home" ? "#00c896" : "#8891a4" }}>Cửa hàng</span>
+        </button>
+        <button className={`nav-item ${page === "cart" ? "active" : ""}`} onClick={() => setPage("cart")} style={{ position: "relative", background: "none", border: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+          <span style={{ fontSize: 24 }}>🛒</span>
+          <span style={{ fontSize: 11, fontWeight: 700, color: page === "cart" ? "#00c896" : "#8891a4" }}>Giỏ hàng</span>
+          {cart.length > 0 && (
+            <span style={{ position: "absolute", top: -2, left: "55%", background: "#ff4d4f", color: "#fff", fontSize: 10, width: 18, height: 18, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, border: "2px solid white" }}>
+              {cart.reduce((s, i) => s + i.qty, 0)}
+            </span>
+          )}
+        </button>
+
+
+        <button className={`nav-item ${page === "checkout" ? "active" : ""}`} onClick={() => setPage("checkout")} style={{ background: "none", border: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+          <span style={{ fontSize: 24 }}>📍</span>
+          <span style={{ fontSize: 11, fontWeight: 700, color: page === "checkout" ? "#00c896" : "#8891a4" }}>Đặt hàng</span>
+        </button>
+        <button className={`nav-item ${page === "history" ? "active" : ""}`} onClick={() => setPage("history")} style={{ background: "none", border: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+          <span style={{ fontSize: 24 }}>📜</span>
+          <span style={{ fontSize: 11, fontWeight: 700, color: page === "history" ? "#00c896" : "#8891a4" }}>Lịch sử</span>
+        </button>
+      </nav>
+
+
+    </div>
+  );
+}
