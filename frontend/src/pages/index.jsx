@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 
+// Tự động load các gợi ý ghi chú thành nút bấm
 const NOTE_SUGGESTIONS = ["ít đá", "không đá", "nhiều đá", "ít ngọt", "không ngọt", "thêm đường", "không topping", "thêm trân châu"];
-const MIN_ORDER = 1;
+const MIN_ORDER = 5; // ĐÃ FIX: Yêu cầu tối thiểu 5 ly
 const fmt = (v) => new Intl.NumberFormat('vi-VN').format(v) + "₫";
 const G = "linear-gradient(135deg, #00c896 0%, #2979ff 100%)";
 const API_URL = "https://alo-do-uong.onrender.com/api";
@@ -103,7 +104,6 @@ function HomePage({ cart, setCart, setToast, setPage, storeData, isOpen, onChang
           setToast(`⚠️ Món này chỉ còn ${p.stock} suất thôi bạn ơi!`);
           return prev;
         }
-
         return prev.map(i => i.id === p.id ? { ...i, qty: i.qty + 1 } : i);
       }
       return [...prev, { ...p, qty: 1 }];
@@ -225,53 +225,80 @@ function CartPage({ cart, setCart, setPage, setToast }) {
     <div style={{ padding: "24px 16px 140px" }}>
       <h2 style={{ marginBottom: 25, fontWeight: 800, fontSize: 24 }}>🛒 Giỏ hàng của bạn</h2>
       {cart.map(i => (
-        <div key={i.id} style={{ background: "white", padding: 16, borderRadius: 24, marginBottom: 15, display: "flex", gap: 16, alignItems: "center", boxShadow: "0 4px 15px rgba(0,0,0,0.04)", border: "1px solid #f0f3f8", opacity: i.selected === false ? 0.5 : 1 }}>
+        <div key={i.id} style={{ background: "white", padding: 16, borderRadius: 24, marginBottom: 15, display: "flex", gap: 16, alignItems: "flex-start", boxShadow: "0 4px 15px rgba(0,0,0,0.04)", border: "1px solid #f0f3f8", opacity: i.selected === false ? 0.5 : 1 }}>
           <input 
             type="checkbox" 
             checked={i.selected !== false} 
             onChange={(e) => setCart(prev => prev.map(item => item.id === i.id ? { ...item, selected: e.target.checked } : item))}
-            style={{ width: 22, height: 22, accentColor: "#00c896", cursor: "pointer", flexShrink: 0 }}
+            style={{ width: 22, height: 22, accentColor: "#00c896", cursor: "pointer", flexShrink: 0, marginTop: 30 }}
           />
-          <img src={i.image_url} style={{ width: 80, height: 80, borderRadius: 18, objectFit: "cover" }} />
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-            <div style={{ fontWeight: 700, fontSize: 17, color: "#1a1a2e" }}>{i.name}</div>
-            <div style={{ color: "var(--accent)", fontWeight: 800, fontSize: 14, marginTop: 4 }}>{fmt(i.price)}</div>
+          <img src={i.image_url} style={{ width: 80, height: 80, borderRadius: 18, objectFit: "cover", marginTop: 2 }} />
+          
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", minWidth: 0 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 17, color: "#1a1a2e" }}>{i.name}</div>
+                <div style={{ color: "var(--accent)", fontWeight: 800, fontSize: 14, marginTop: 2 }}>{fmt(i.price)}</div>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <button onClick={() => updateQty(i.id, -1)} style={{ width: 26, height: 26, borderRadius: 8, border: "1px solid #e2e8f0", background: "#f8fafc", color: "#1e293b", fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>-</button>
+                <span style={{ fontWeight: 800, fontSize: 14, minWidth: 15, textAlign: "center" }}>{i.qty}</span>
+                <button onClick={() => updateQty(i.id, 1)} style={{ width: 26, height: 26, borderRadius: 8, border: "none", background: "#00c896", color: "white", fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>+</button>
+              </div>
+            </div>
+
+            {/* --- FIX: Ô nhập ghi chú và các NÚT GỢI Ý GHI CHÚ --- */}
             <input
               type="text"
-              placeholder="Ghi chú..."
+              placeholder="Ghi chú thêm (hoặc chọn bên dưới)..."
               value={i.note || ""}
               onChange={(e) => {
                 const val = e.target.value;
                 setCart(prev => prev.map(item => item.id === i.id ? { ...item, note: val } : item));
               }}
               style={{
-                width: "100%", padding: "4px 8px", marginTop: 6, fontSize: 11,
-                border: "1px solid #f0f3f8", borderRadius: 6, outline: "none",
-                background: "#f8fafc", color: "#64748b"
+                width: "100%", padding: "6px 10px", marginTop: 8, fontSize: 12,
+                border: "1px solid #e2e8f0", borderRadius: 8, outline: "none",
+                background: "#f8fafc", color: "#1e293b"
               }}
             />
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", justifyContent: "space-between", gap: 10 }}>
-            <div style={{ fontWeight: 800, fontSize: 17, color: "#1a1a2e" }}>{fmt(i.price * i.qty)}</div>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <button onClick={() => updateQty(i.id, -1)} style={{ width: 28, height: 28, borderRadius: 8, border: "1px solid #e2e8f0", background: "#f8fafc", color: "#1e293b", fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>-</button>
-              <span style={{ fontWeight: 800, fontSize: 15, minWidth: 15, textAlign: "center" }}>{i.qty}</span>
-              <button onClick={() => updateQty(i.id, 1)} style={{ width: 28, height: 28, borderRadius: 8, border: "none", background: "#00c896", color: "white", fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>+</button>
+            
+            <div className="no-scroll" style={{ display: "flex", gap: 6, marginTop: 6, overflowX: "auto", paddingBottom: 4 }}>
+              {NOTE_SUGGESTIONS.map(sug => (
+                <button
+                  key={sug}
+                  onClick={() => {
+                    const currentNote = i.note ? i.note.trim() : "";
+                    if (currentNote.includes(sug)) return; // Tránh bấm trùng lặp
+                    const newNote = currentNote ? `${currentNote}, ${sug}` : sug;
+                    setCart(prev => prev.map(item => item.id === i.id ? { ...item, note: newNote } : item));
+                  }}
+                  style={{
+                    flexShrink: 0, padding: "4px 10px", fontSize: 11, fontWeight: 600,
+                    background: "#f0f4ff", color: "var(--accent)",
+                    border: "1px solid #d6e4ff", borderRadius: 12, cursor: "pointer"
+                  }}
+                >
+                  + {sug}
+                </button>
+              ))}
             </div>
+            {/* ---------------------------------------------------- */}
+
           </div>
         </div>
       ))}
+
       <div style={{ position: "fixed", bottom: 85, left: 0, right: 0, width: "100%", padding: "10px 20px", background: "white", zIndex: 90, borderTop: "1px solid #f0f3f8", display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
         {totalQty < MIN_ORDER && (
           <div style={{ color: "#ef4444", fontSize: 13, fontWeight: 700 }}>
-            ⚠️ Bạn cần chọn thêm {MIN_ORDER - totalQty} món nữa để giao hàng!
+            ⚠️ Bạn cần chọn thêm tối thiểu {MIN_ORDER - totalQty} món nữa để giao hàng!
           </div>
         )}
         <button
           onClick={() => {
             if (totalQty < MIN_ORDER) {
-              alert(`Bạn cần chọn tối thiểu ${MIN_ORDER} món để đặt hàng nhé!`);
+              setToast(`⚠️ Cần tối thiểu ${MIN_ORDER} ly để quán nhận giao hàng nha!`);
               return;
             }
             setPage("checkout");
@@ -292,6 +319,10 @@ function CheckoutPage({ cart, storeData, setPage, setToast, setOrders, isOpen, c
   const [name, setName] = useState(localStorage.getItem("alo_name") || "");
   const [phone, setPhone] = useState(localStorage.getItem("alo_phone") || "");
   const [addr, setAddr] = useState(localStorage.getItem("alo_addr") || "");
+  
+  // --- FIX: THÊM STATE PHƯƠNG THỨC THANH TOÁN ---
+  const [paymentMethod, setPaymentMethod] = useState("Tiền mặt");
+  
   const [gps, setGps] = useState("");
   const [loading, setLoading] = useState(false);
   const [distance, setDistance] = useState(0);
@@ -317,9 +348,22 @@ function CheckoutPage({ cart, storeData, setPage, setToast, setOrders, isOpen, c
     });
   };
 
+  const totalQty = cart.reduce((s, i) => s + i.qty, 0);
   const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const finalTotal = total + shippingFee;
   const isFormValid = name.trim() && phone.trim() && addr.trim();
+
+  // FIX LỖI: Cửa hậu bảo vệ, nhỡ ai dùng mẹo lách qua đây mà chưa đủ số lượng
+  if (totalQty < MIN_ORDER) {
+    return (
+      <div style={{ padding: "100px 20px", textAlign: "center" }}>
+        <div style={{ fontSize: 60, marginBottom: 15 }}>⚠️</div>
+        <h3 style={{ fontWeight: 800, fontSize: 22, color: "#1a1a2e" }}>Chưa đủ số lượng</h3>
+        <p style={{ color: "var(--muted)", marginTop: 8 }}>Vui lòng chọn tối thiểu {MIN_ORDER} ly để quán nhận giao hàng nhé!</p>
+        <button onClick={() => setPage("cart")} className="btn-grad" style={{ padding: "12px 24px", marginTop: 25, fontSize: 15 }}>Quay lại giỏ hàng</button>
+      </div>
+    );
+  }
 
   const handleSubmit = async () => {
     if (!isFormValid) {
@@ -337,8 +381,13 @@ function CheckoutPage({ cart, storeData, setPage, setToast, setOrders, isOpen, c
     localStorage.setItem("alo_addr", addr);
 
     const payload = {
-      store: storeData.id, customer_name: name, customer_phone: phone, address: `${addr} (GPS: ${gps})`,
-      total_price: finalTotal, items: cart.map(i => ({ product_name: i.name, quantity: i.qty, price: i.price, note: i.note }))
+      store: storeData.id, 
+      customer_name: name, 
+      customer_phone: phone, 
+      // Ép phương thức thanh toán vào chung với địa chỉ để hiển thị trên Admin
+      address: `${addr} (GPS: ${gps}) | Thanh toán: ${paymentMethod}`,
+      total_price: finalTotal, 
+      items: cart.map(i => ({ product_name: i.name, quantity: i.qty, price: i.price, note: i.note }))
     };
 
     try {
@@ -377,7 +426,23 @@ function CheckoutPage({ cart, storeData, setPage, setToast, setOrders, isOpen, c
         <input className="input-field" placeholder="Địa chỉ chi tiết (Số nhà, đường...)" value={addr} onChange={e => setAddr(e.target.value)} />
       </div>
 
-      <div style={{ marginTop: 30, background: "white", padding: 24, borderRadius: 24, boxShadow: "0 8px 25px rgba(0,0,0,0.05)", border: "1px solid #f0f3f8" }}>
+      {/* --- FIX: UI CHỌN PHƯƠNG THỨC THANH TOÁN --- */}
+      <div style={{ marginTop: 24, background: "white", padding: 24, borderRadius: 24, boxShadow: "0 8px 25px rgba(0,0,0,0.05)", border: "1px solid #f0f3f8" }}>
+        <div style={{ fontWeight: 800, marginBottom: 14, fontSize: 16 }}>Phương thức thanh toán</div>
+        <div style={{ display: "flex", gap: 12 }}>
+          <label style={{ flex: 1, padding: 14, border: paymentMethod === "Tiền mặt" ? "2px solid var(--accent)" : "1px solid var(--border)", borderRadius: 16, display: "flex", alignItems: "center", gap: 8, cursor: "pointer", background: paymentMethod === "Tiền mặt" ? "#f0f4ff" : "white" }}>
+            <input type="radio" checked={paymentMethod === "Tiền mặt"} onChange={() => setPaymentMethod("Tiền mặt")} style={{ accentColor: "var(--accent)" }} />
+            <span style={{ fontWeight: 700, fontSize: 14 }}>💵 Tiền mặt</span>
+          </label>
+          <label style={{ flex: 1, padding: 14, border: paymentMethod === "Chuyển khoản" ? "2px solid var(--accent)" : "1px solid var(--border)", borderRadius: 16, display: "flex", alignItems: "center", gap: 8, cursor: "pointer", background: paymentMethod === "Chuyển khoản" ? "#f0f4ff" : "white" }}>
+            <input type="radio" checked={paymentMethod === "Chuyển khoản"} onChange={() => setPaymentMethod("Chuyển khoản")} style={{ accentColor: "var(--accent)" }} />
+            <span style={{ fontWeight: 700, fontSize: 14 }}>💳 Chuyển khoản</span>
+          </label>
+        </div>
+      </div>
+      {/* ------------------------------------------- */}
+
+      <div style={{ marginTop: 24, background: "white", padding: 24, borderRadius: 24, boxShadow: "0 8px 25px rgba(0,0,0,0.05)", border: "1px solid #f0f3f8" }}>
         <div style={{ fontWeight: 800, marginBottom: 18, fontSize: 18 }}>Tóm tắt đơn hàng</div>
         {cart.map(i => <div key={i.id} style={{ display: "flex", justifyContent: "space-between", marginBottom: 10, fontSize: 15 }}><span>{i.name} x{i.qty}</span><span style={{ fontWeight: 700 }}>{fmt(i.price * i.qty)}</span></div>)}
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: 12, fontSize: 15, color: "var(--muted)", fontWeight: 600 }}>
@@ -407,9 +472,7 @@ function CheckoutPage({ cart, storeData, setPage, setToast, setOrders, isOpen, c
   );
 }
 
-
 // ─── HISTORY PAGE ─────────────────────────────────────────────────────────────
-
 function HistoryPage({ orders, isSyncing, onRefresh }) {
   const getStatusStyle = (s) => {
     switch(s) {
@@ -467,7 +530,6 @@ export default function App() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isSyncing, setIsSyncing] = useState(false);
 
-  // --- SỬA LỖI 1: CHỈ CHẠY 1 LẦN DUY NHẤT KHI VÀO WEB ---
   useEffect(() => {
     localStorage.removeItem("selected_store_id");
     setStoreData(null);
@@ -481,7 +543,6 @@ export default function App() {
     return () => clearInterval(timer);
   }, []); 
 
-  // --- SỬA LỖI 2: CHẠY RIÊNG CHO TRANG LỊCH SỬ KHI ĐỔI TAB ---
   useEffect(() => {
     let syncTimer;
     if (page === "history") {
@@ -509,7 +570,6 @@ export default function App() {
           const data = await res.json();
           return { ...o, status: data.status };
         } else if (res.status === 404) {
-           // --- SỬA LỖI 3: DỌN SẠCH ĐƠN BỊ XÓA BẰNG CÁCH TRẢ VỀ NULL ---
            console.warn(`Đơn hàng ${o.order_code} đã bị xóa trên máy chủ, đang dọn dẹp...`);
            return null; 
         }
@@ -519,7 +579,6 @@ export default function App() {
       return o;
     }));
 
-    // Lọc bỏ những đơn hàng bị null ra khỏi bộ nhớ
     const validOrders = updatedResults.filter(o => o !== null);
     
     setOrders(validOrders);
@@ -578,8 +637,6 @@ export default function App() {
 
       {page === "home" && <HomePage cart={cart} setCart={setCart} setToast={handleToast} setPage={setPage} storeData={storeData} isOpen={isOpen()} onChangeStore={() => { localStorage.removeItem("selected_store_id"); setStoreData(null); }} />}
       {page === "cart" && <CartPage cart={cart} setCart={setCart} setPage={setPage} setToast={handleToast} />}
-
-
       {page === "checkout" && <CheckoutPage cart={cart.filter(i => i.selected !== false)} storeData={storeData} setPage={setPage} setToast={handleToast} setOrders={setOrders} isOpen={isOpen()} clearCart={() => setCart(prev => prev.filter(i => i.selected === false))} />}
       {page === "history" && <HistoryPage orders={orders} isSyncing={isSyncing} onRefresh={() => syncOrders(orders)} />}
 
@@ -602,18 +659,29 @@ export default function App() {
           )}
         </button>
 
-
-        <button className={`nav-item ${page === "checkout" ? "active" : ""}`} onClick={() => setPage("checkout")} style={{ background: "none", border: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+        {/* --- FIX: Chặn người dùng bấm tắt qua tab Đặt hàng nếu chưa đủ 5 ly --- */}
+        <button className={`nav-item ${page === "checkout" ? "active" : ""}`} 
+          onClick={() => {
+            const activeCart = cart.filter(i => i.selected !== false);
+            const totalQty = activeCart.reduce((s, i) => s + i.qty, 0);
+            if (totalQty < MIN_ORDER) {
+              handleToast(`⚠️ Bạn cần chọn tối thiểu ${MIN_ORDER} ly để đặt hàng!`);
+              setPage("cart"); // Đá về giỏ hàng luôn
+            } else {
+              setPage("checkout");
+            }
+          }} 
+          style={{ background: "none", border: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
           <span style={{ fontSize: 24 }}>📍</span>
           <span style={{ fontSize: 11, fontWeight: 700, color: page === "checkout" ? "#00c896" : "#8891a4" }}>Đặt hàng</span>
         </button>
+        {/* ---------------------------------------------------------------------- */}
+
         <button className={`nav-item ${page === "history" ? "active" : ""}`} onClick={() => setPage("history")} style={{ background: "none", border: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
           <span style={{ fontSize: 24 }}>📜</span>
           <span style={{ fontSize: 11, fontWeight: 700, color: page === "history" ? "#00c896" : "#8891a4" }}>Lịch sử</span>
         </button>
       </nav>
-
-
     </div>
   );
 }
