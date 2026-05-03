@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 
-// Tự động load các gợi ý ghi chú thành nút bấm
 const NOTE_SUGGESTIONS = ["ít đá", "không đá", "nhiều đá", "ít ngọt", "không ngọt", "thêm đường", "không topping", "thêm trân châu"];
-const MIN_ORDER = 5; // ĐÃ FIX: Yêu cầu tối thiểu 5 ly
+const MIN_ORDER = 5; 
 const fmt = (v) => new Intl.NumberFormat('vi-VN').format(v) + "₫";
 const G = "linear-gradient(135deg, #00c896 0%, #2979ff 100%)";
 const API_URL = "https://alo-do-uong.onrender.com/api";
@@ -49,7 +48,7 @@ function StorePicker({ onSelect }) {
       .then(r => r.json()).then(data => { setStores(data); setLoading(false); }).catch(() => setLoading(false));
   }, []);
 
-  if (loading) return <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}><div style={{ display: "flex", gap: 6 }}>{[1, 2, 3].map(i => <div key={i} style={{ width: 10, height: 10, background: G, borderRadius: "50%", animation: "pulse 1.4s infinite", animationDelay: `${i * 0.2}s` }} />)}</div><style>{`@keyframes pulse { 0%, 100% { transform: scale(0.6); opacity: 0.4; } 50% { transform: scale(1.2); opacity: 1; } }`}</style></div>;
+  if (loading) return <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}><div style={{ display: "flex", gap: 6 }}>{[1, 2, 3].map(i => <div key={i} style={{ width: 10, height: 10, background: G, borderRadius: "50%", animation: "pulse 1.4s infinite", animationDelay: `${i * 0.2}s` }} />)}</div></div>;
 
   return (
     <div style={{ padding: "50px 20px" }}>
@@ -113,7 +112,6 @@ function HomePage({ cart, setCart, setToast, setPage, storeData, isOpen, onChang
 
   return (
     <div style={{ paddingBottom: 110 }}>
-      {/* Header & Categories */}
       <div style={{ padding: "20px 16px", background: "white", borderRadius: "0 0 32px 32px", boxShadow: "0 4px 20px rgba(0,0,0,0.06)", position: "sticky", top: 0, zIndex: 50 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 18 }}>
           <button onClick={onChangeStore} style={{ border: "none", background: "#f0f4ff", color: "var(--accent)", width: 42, height: 42, borderRadius: "50%", fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>⬅️</button>
@@ -136,7 +134,6 @@ function HomePage({ cart, setCart, setToast, setPage, storeData, isOpen, onChang
         </div>
       </div>
 
-      {/* Featured Suggestions */}
       {activeCat === 0 && (
         <div style={{ marginTop: 24 }}>
           <div style={{ padding: "0 16px", marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -156,18 +153,16 @@ function HomePage({ cart, setCart, setToast, setPage, storeData, isOpen, onChang
                     {p.stock > 0 ? `Còn: ${p.stock}` : "Hết"}
                   </div>
                 </div>
-
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* Main List */}
       <div style={{ padding: "20px 16px 12px", fontSize: 19, fontWeight: 800 }}>
         {activeCat === 0 ? "🏮 Thực đơn hôm nay" : `🥤 ${categories.find(c => c.id === activeCat)?.name}`}
       </div>
-      {loading ? <div style={{ padding: 50, textAlign: "center" }}><div className="dot-loader"><span></span><span></span><span></span></div></div> : (
+      {loading ? <div style={{ padding: 50, textAlign: "center" }}>Đang tải...</div> : (
         <div className="products-grid">
           {filtered.map(p => (
             <div key={p.id} className="product-card" onClick={() => addToCart(p)}>
@@ -183,11 +178,7 @@ function HomePage({ cart, setCart, setToast, setPage, storeData, isOpen, onChang
                   </div>
                   <button
                     onClick={(e) => { e.stopPropagation(); addToCart(p); }}
-                    style={{
-                      width: 35, height: 35, borderRadius: 12, border: "none",
-                      background: p.stock > 0 ? G : "#cbd5e1", color: "white", fontWeight: 800,
-                      cursor: p.stock > 0 ? "pointer" : "default"
-                    }}
+                    style={{ width: 35, height: 35, borderRadius: 12, border: "none", background: p.stock > 0 ? G : "#cbd5e1", color: "white", fontWeight: 800, cursor: p.stock > 0 ? "pointer" : "default" }}
                     disabled={p.stock <= 0}
                   >+</button>
                 </div>
@@ -202,7 +193,6 @@ function HomePage({ cart, setCart, setToast, setPage, storeData, isOpen, onChang
 
 // ─── CART PAGE ────────────────────────────────────────────────────────────────
 function CartPage({ cart, setCart, setPage, setToast }) {
-
   const updateQty = (id, delta) => setCart(p => p.map(i => {
     if (i.id === id) {
       const newQty = i.qty + delta;
@@ -247,20 +237,15 @@ function CartPage({ cart, setCart, setPage, setToast }) {
               </div>
             </div>
 
-            {/* --- FIX: Ô nhập ghi chú và các NÚT GỢI Ý GHI CHÚ --- */}
             <input
               type="text"
-              placeholder="Ghi chú thêm (hoặc chọn bên dưới)..."
+              placeholder="Ghi chú thêm..."
               value={i.note || ""}
               onChange={(e) => {
                 const val = e.target.value;
                 setCart(prev => prev.map(item => item.id === i.id ? { ...item, note: val } : item));
               }}
-              style={{
-                width: "100%", padding: "6px 10px", marginTop: 8, fontSize: 12,
-                border: "1px solid #e2e8f0", borderRadius: 8, outline: "none",
-                background: "#f8fafc", color: "#1e293b"
-              }}
+              style={{ width: "100%", padding: "6px 10px", marginTop: 8, fontSize: 12, border: "1px solid #e2e8f0", borderRadius: 8, outline: "none", background: "#f8fafc", color: "#1e293b" }}
             />
             
             <div className="no-scroll" style={{ display: "flex", gap: 6, marginTop: 6, overflowX: "auto", paddingBottom: 4 }}>
@@ -269,22 +254,16 @@ function CartPage({ cart, setCart, setPage, setToast }) {
                   key={sug}
                   onClick={() => {
                     const currentNote = i.note ? i.note.trim() : "";
-                    if (currentNote.includes(sug)) return; // Tránh bấm trùng lặp
+                    if (currentNote.includes(sug)) return; 
                     const newNote = currentNote ? `${currentNote}, ${sug}` : sug;
                     setCart(prev => prev.map(item => item.id === i.id ? { ...item, note: newNote } : item));
                   }}
-                  style={{
-                    flexShrink: 0, padding: "4px 10px", fontSize: 11, fontWeight: 600,
-                    background: "#f0f4ff", color: "var(--accent)",
-                    border: "1px solid #d6e4ff", borderRadius: 12, cursor: "pointer"
-                  }}
+                  style={{ flexShrink: 0, padding: "4px 10px", fontSize: 11, fontWeight: 600, background: "#f0f4ff", color: "var(--accent)", border: "1px solid #d6e4ff", borderRadius: 12, cursor: "pointer" }}
                 >
                   + {sug}
                 </button>
               ))}
             </div>
-            {/* ---------------------------------------------------- */}
-
           </div>
         </div>
       ))}
@@ -314,13 +293,11 @@ function CartPage({ cart, setCart, setPage, setToast }) {
   );
 }
 
-// ─── CHECKOUT PAGE ────────────────────────────────────────────────────────────
+// ─── CHECKOUT PAGE (BẢN ĐỘ ZALO BILL + QR CODE) ────────────────────────────────────────────────────────────
 function CheckoutPage({ cart, storeData, setPage, setToast, setOrders, isOpen, clearCart }) {
   const [name, setName] = useState(localStorage.getItem("alo_name") || "");
   const [phone, setPhone] = useState(localStorage.getItem("alo_phone") || "");
   const [addr, setAddr] = useState(localStorage.getItem("alo_addr") || "");
-  
-  // --- FIX: THÊM STATE PHƯƠNG THỨC THANH TOÁN ---
   const [paymentMethod, setPaymentMethod] = useState("Tiền mặt");
   
   const [gps, setGps] = useState("");
@@ -353,7 +330,32 @@ function CheckoutPage({ cart, storeData, setPage, setToast, setOrders, isOpen, c
   const finalTotal = total + shippingFee;
   const isFormValid = name.trim() && phone.trim() && addr.trim();
 
-  // FIX LỖI: Cửa hậu bảo vệ, nhỡ ai dùng mẹo lách qua đây mà chưa đủ số lượng
+  // Tạo Bill Text theo chuẩn Zalo Sếp yêu cầu
+  const generateZaloBill = () => {
+    let bill = `🛒 ĐƠN MỚI TỪ: ${storeData.name}\n`;
+    bill += `👤 Khách hàng: ${name} - ${phone}\n`;
+    bill += `----------------\n`;
+    cart.forEach(i => {
+      bill += `+ ${i.qty}x ${i.name}\n`;
+    });
+    bill += `----------------\n`;
+    bill += `🥤 Tổng số ly: ${totalQty}\n`;
+    bill += `💰 Tổng tiền: ${fmt(finalTotal)}\n`;
+    bill += `💳 Thanh toán: ${paymentMethod}\n`;
+    bill += `📍 Giao đến: [${addr}]${gps ? ` 📍 GPS` : ""}\n`;
+    if (gps) {
+       bill += `🗺️ Bản đồ: https://maps.google.com/?q=${gps.replace(/\s+/g, '')}\n`;
+    }
+    
+    // Gộp ghi chú của tất cả các ly
+    const allNotes = cart.filter(i => i.note).map(i => `${i.note} cho ${i.name}`).join(", ");
+    if (allNotes) {
+      bill += `📝 Ghi chú: ${allNotes}`;
+    }
+    
+    return bill;
+  };
+
   if (totalQty < MIN_ORDER) {
     return (
       <div style={{ padding: "100px 20px", textAlign: "center" }}>
@@ -372,7 +374,6 @@ function CheckoutPage({ cart, storeData, setPage, setToast, setOrders, isOpen, c
     }
     if (!isOpen) {
       setToast("Quán đang tạm nghỉ, hẹn bạn lúc khác nhé!");
-      window.scrollTo(0, 0);
       return;
     }
     setLoading(true);
@@ -384,7 +385,6 @@ function CheckoutPage({ cart, storeData, setPage, setToast, setOrders, isOpen, c
       store: storeData.id, 
       customer_name: name, 
       customer_phone: phone, 
-      // Ép phương thức thanh toán vào chung với địa chỉ để hiển thị trên Admin
       address: `${addr} (GPS: ${gps}) | Thanh toán: ${paymentMethod}`,
       total_price: finalTotal, 
       items: cart.map(i => ({ product_name: i.name, quantity: i.qty, price: i.price, note: i.note }))
@@ -402,7 +402,24 @@ function CheckoutPage({ cart, storeData, setPage, setToast, setOrders, isOpen, c
         setOrders([newO, ...hist]);
         clearCart();
         setPage("history");
-        alert("🎉 Đặt hàng thành công! Mã đơn của bạn là: #" + data.order_code);
+        
+        // --- CÚ LỪA ZALO: COPY BILL VÀ MỞ ZALO CHO KHÁCH ---
+        const zaloBill = generateZaloBill();
+        try {
+            await navigator.clipboard.writeText(zaloBill);
+            alert("🎉 Đặt hàng thành công! Hóa đơn đã được Copy sẵn. Hệ thống sẽ mở Zalo, bạn hãy BẤM DÁN (Paste) để gửi cho chủ quán nhé!");
+            
+            // Mở app Zalo bằng số điện thoại lấy từ storeData
+            // Nếu Sếp đặt tên cột SĐT Zalo khác trong DB, hãy sửa lại chỗ storeData.zalo_phone này nha
+            const zaloNumber = storeData.phone || storeData.zalo_phone || "";
+            if (zaloNumber) {
+               window.location.href = `https://zalo.me/${zaloNumber}`;
+            }
+        } catch (err) {
+            alert("🎉 Đặt hàng thành công! Mã đơn: #" + data.order_code);
+        }
+        // ----------------------------------------------------
+
       } else {
         alert("❌ Lỗi: " + (data.error || "Không thể đặt hàng, vui lòng kiểm tra lại!"));
       }
@@ -420,13 +437,12 @@ function CheckoutPage({ cart, storeData, setPage, setToast, setOrders, isOpen, c
         <input className="input-field" placeholder="Số điện thoại" value={phone} onChange={e => setPhone(e.target.value)} />
 
         <div style={{ display: "flex", gap: 10 }}>
-          <input className="input-field" placeholder="Vị trí GPS" value={gps} readOnly style={{ flex: 1, background: "#f8fafc", fontSize: 13 }} />
+          <input className="input-field" placeholder="Vị trí GPS (Nếu có)" value={gps} readOnly style={{ flex: 1, background: "#f8fafc", fontSize: 13 }} />
           <button onClick={getLocation} className="btn-grad" style={{ padding: "0 18px", fontSize: 13, borderRadius: 16 }}>📍 Lấy GPS</button>
         </div>
         <input className="input-field" placeholder="Địa chỉ chi tiết (Số nhà, đường...)" value={addr} onChange={e => setAddr(e.target.value)} />
       </div>
 
-      {/* --- FIX: UI CHỌN PHƯƠNG THỨC THANH TOÁN --- */}
       <div style={{ marginTop: 24, background: "white", padding: 24, borderRadius: 24, boxShadow: "0 8px 25px rgba(0,0,0,0.05)", border: "1px solid #f0f3f8" }}>
         <div style={{ fontWeight: 800, marginBottom: 14, fontSize: 16 }}>Phương thức thanh toán</div>
         <div style={{ display: "flex", gap: 12 }}>
@@ -439,18 +455,33 @@ function CheckoutPage({ cart, storeData, setPage, setToast, setOrders, isOpen, c
             <span style={{ fontWeight: 700, fontSize: 14 }}>💳 Chuyển khoản</span>
           </label>
         </div>
+        
+        {/* --- HIỂN THỊ MÃ QR NẾU KHÁCH CHỌN CHUYỂN KHOẢN --- */}
+        {paymentMethod === "Chuyển khoản" && (
+            <div style={{ marginTop: 20, textAlign: "center", padding: 15, background: "#f8fafc", borderRadius: 12, border: "2px dashed #cbd5e1" }}>
+                <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 10, color: "#1e293b" }}>Vui lòng quét mã QR dưới đây để thanh toán</p>
+                {/* Lấy link ảnh từ API, giả sử tên là qr_image hoặc qr_code */}
+                {storeData.qr_image || storeData.qr_code ? (
+                    <img 
+                      src={storeData.qr_image || storeData.qr_code} 
+                      alt="QR Thanh toán" 
+                      style={{ maxWidth: "100%", maxHeight: 300, borderRadius: 10 }} 
+                    />
+                ) : (
+                    <p style={{ color: "#ef4444", fontSize: 13, fontWeight: 600 }}>Quán chưa cập nhật mã QR. Vui lòng chọn Tiền mặt.</p>
+                )}
+            </div>
+        )}
       </div>
-      {/* ------------------------------------------- */}
 
+      {/* --- BILL PREVIEW (BẢN NHÁP HÓA ĐƠN TRỰC QUAN CHO KHÁCH XEM) --- */}
       <div style={{ marginTop: 24, background: "white", padding: 24, borderRadius: 24, boxShadow: "0 8px 25px rgba(0,0,0,0.05)", border: "1px solid #f0f3f8" }}>
-        <div style={{ fontWeight: 800, marginBottom: 18, fontSize: 18 }}>Tóm tắt đơn hàng</div>
-        {cart.map(i => <div key={i.id} style={{ display: "flex", justifyContent: "space-between", marginBottom: 10, fontSize: 15 }}><span>{i.name} x{i.qty}</span><span style={{ fontWeight: 700 }}>{fmt(i.price * i.qty)}</span></div>)}
-        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 12, fontSize: 15, color: "var(--muted)", fontWeight: 600 }}>
-          <span>Phí vận chuyển ({distance > 0 ? `${distance.toFixed(1)}km` : "Chưa định vị"})</span>
-          <span>{shippingFee === 0 ? "Miễn phí" : fmt(shippingFee)}</span>
-        </div>
-        <div style={{ borderTop: "2px dashed #eee", marginTop: 15, paddingTop: 15, display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: 22 }}>
-          <span>Tổng cộng</span><span style={{ color: "var(--accent)" }}>{fmt(finalTotal)}</span>
+        <div style={{ fontWeight: 800, marginBottom: 18, fontSize: 18 }}>Chi tiết hóa đơn</div>
+        
+        <div style={{ fontFamily: "monospace", fontSize: 13, color: "#475569", background: "#f8fafc", padding: 16, borderRadius: 12, border: "1px dashed #cbd5e1" }}>
+            <div style={{ whiteSpace: "pre-wrap" }}>
+                {generateZaloBill()}
+            </div>
         </div>
       </div>
 
@@ -466,11 +497,12 @@ function CheckoutPage({ cart, storeData, setPage, setToast, setOrders, isOpen, c
           cursor: (!isOpen || loading) ? "not-allowed" : "pointer"
         }}
       >
-        {loading ? "ĐANG XỬ LÝ..." : (!isOpen ? "QUÁN ĐANG TẠM NGHỈ" : "XÁC NHẬN ĐẶT HÀNG")}
+        {loading ? "ĐANG XỬ LÝ..." : (!isOpen ? "QUÁN ĐANG TẠM NGHỈ" : "XÁC NHẬN & COPY BILL")}
       </button>
     </div>
   );
 }
+
 
 // ─── HISTORY PAGE ─────────────────────────────────────────────────────────────
 function HistoryPage({ orders, isSyncing, onRefresh }) {
@@ -659,14 +691,13 @@ export default function App() {
           )}
         </button>
 
-        {/* --- FIX: Chặn người dùng bấm tắt qua tab Đặt hàng nếu chưa đủ 5 ly --- */}
         <button className={`nav-item ${page === "checkout" ? "active" : ""}`} 
           onClick={() => {
             const activeCart = cart.filter(i => i.selected !== false);
             const totalQty = activeCart.reduce((s, i) => s + i.qty, 0);
             if (totalQty < MIN_ORDER) {
               handleToast(`⚠️ Bạn cần chọn tối thiểu ${MIN_ORDER} ly để đặt hàng!`);
-              setPage("cart"); // Đá về giỏ hàng luôn
+              setPage("cart"); 
             } else {
               setPage("checkout");
             }
@@ -675,7 +706,6 @@ export default function App() {
           <span style={{ fontSize: 24 }}>📍</span>
           <span style={{ fontSize: 11, fontWeight: 700, color: page === "checkout" ? "#00c896" : "#8891a4" }}>Đặt hàng</span>
         </button>
-        {/* ---------------------------------------------------------------------- */}
 
         <button className={`nav-item ${page === "history" ? "active" : ""}`} onClick={() => setPage("history")} style={{ background: "none", border: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
           <span style={{ fontSize: 24 }}>📜</span>
