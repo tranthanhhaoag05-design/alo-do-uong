@@ -166,7 +166,7 @@ export default function SettingsPage() {
             <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Ngon · Nhanh · Tận nơi 🚀" style={{ padding: "12px 16px", borderRadius: 8, border: "1px solid #c3cfe0", minHeight: 60, fontFamily: "inherit" }} />
           </div>
 
-          {/* --- 4. GIAO DIỆN NHẬP LINK QR VÀ XEM TRƯỚC --- */}
+{/* --- 4. GIAO DIỆN NHẬP LINK QR VÀ XEM TRƯỚC --- */}
           <div style={{ background: "#f8fafc", padding: 16, borderRadius: 12, border: "1px dashed #cbd5e1" }}>
             <label style={{ fontWeight: 700, fontSize: 14, color: "#1a202c", display: "block", marginBottom: 8 }}>Mã QR Thanh Toán (Chuyển khoản)</label>
             <p style={{ fontSize: 12, color: "#64748b", marginBottom: 12 }}>Upload ảnh mã QR của bạn lên Postimages.org rồi copy "Liên kết trực tiếp" (.jpg/.png) dán vào đây.</p>
@@ -177,13 +177,38 @@ export default function SettingsPage() {
               placeholder="Ví dụ: https://i.postimg.cc/xxx/momo.jpg"
               style={{ width: "100%", padding: "12px 16px", borderRadius: 8, border: "1px solid #c3cfe0", marginBottom: 12 }} 
             />
-            {/* Khung xem trước (Preview) */}
+            
+            {/* --- FIX: KHUNG PREVIEW ĐÃ ĐƯỢC ÉP BO SÁT VÀ RA GIỮA --- */}
             {qrImage && (
-              <div style={{ textAlign: "center", padding: 10, background: "#fff", borderRadius: 8, border: "1px solid #e2e8f0" }}>
-                <p style={{ fontSize: 11, fontWeight: 700, color: "#10b981", marginBottom: 8 }}>✅ Hình ảnh hợp lệ (Xem trước):</p>
-                <img src={qrImage} alt="QR Preview" style={{ maxWidth: 150, height: "auto", borderRadius: 8, boxShadow: "0 2px 10px rgba(0,0,0,0.1)" }} />
+              <div style={{ display: "flex", justifyContent: "center" }}>
+                <div style={{ 
+                  padding: 16, 
+                  background: "#fff", 
+                  borderRadius: 12, 
+                  border: "1px solid #e2e8f0", 
+                  display: "flex", 
+                  flexDirection: "column", 
+                  alignItems: "center",
+                  boxShadow: "0 4px 15px rgba(0,0,0,0.05)"
+                }}>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: "#10b981", marginBottom: 12 }}>✅ Hình ảnh hợp lệ (Xem trước):</p>
+                  <img 
+                    src={qrImage} 
+                    alt="QR Preview" 
+                    style={{ 
+                      width: "100%", 
+                      maxWidth: "220px", /* Phóng to ra một tí cho chủ quán dễ nhìn */
+                      height: "auto", 
+                      borderRadius: 10, 
+                      objectFit: "contain",
+                      boxShadow: "0 2px 10px rgba(0,0,0,0.1)"
+                    }} 
+                  />
+                </div>
               </div>
             )}
+            {/* ---------------------------------------------------- */}
+
           </div>
           {/* ------------------------------------------- */}
 
