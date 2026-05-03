@@ -12,10 +12,13 @@ export default function SettingsPage() {
   const [isOpen, setIsOpen] = useState(true);
   const [lat, setLat] = useState(10.762622);
   const [lng, setLng] = useState(106.660172);
+  
+  // --- 1. THÊM STATE ĐỂ LƯU LINK ẢNH QR ---
+  const [qrImage, setQrImage] = useState("");
+  
   const [loading, setLoading] = useState(true);
   const [locLoading, setLocLoading] = useState(false);
 
-  // --- LOGIC ĐỒNG HỒ THỜI GIAN THỰC ĐƯỢC CHÈN THÊM ---
   const [currentTime, setCurrentTime] = useState(new Date());
   
   useEffect(() => {
@@ -37,7 +40,6 @@ export default function SettingsPage() {
   };
 
   const isActuallyOpen = isOpen && isTimeOpen();
-  // --------------------------------------------------
 
   useEffect(() => {
     const storeId = localStorage.getItem("store_id");
@@ -58,6 +60,11 @@ export default function SettingsPage() {
         setIsOpen(data.is_active ?? true);
         setLat(data.latitude || 10.762622);
         setLng(data.longitude || 106.660172);
+        
+        // --- 2. LẤY LINK QR CŨ TỪ BỘ NHỚ LÊN (NẾU CÓ) ---
+        // Sếp lưu ý: Phải check xem Backend Sếp đặt tên biến là qr_image hay qr_code nhé!
+        setQrImage(data.qr_image || data.qr_code || "");
+        
         setLoading(false);
       })
       .catch(err => {
@@ -94,6 +101,10 @@ export default function SettingsPage() {
     formData.append("is_active", isOpen);
     formData.append("latitude", lat);
     formData.append("longitude", lng);
+    
+    // --- 3. ĐÓNG GÓI LINK QR ĐỂ GỬI LÊN SERVER ---
+    // QUAN TRỌNG: Sếp đổi chữ "qr_image" dưới đây cho trùng với tên cột trong Database Django nhé!
+    formData.append("qr_image", qrImage);
 
     try {
       const res = await fetch(`https://alo-do-uong.onrender.com/api/stores/${storeId}/`, {
@@ -118,7 +129,6 @@ export default function SettingsPage() {
     <div style={{ maxWidth: 800, margin: "0 auto" }}>
       <h2 style={{ margin: "0 0 24px", fontSize: 20, fontWeight: 800, color: "#0d1117" }}>Cài đặt Cửa hàng</h2>
 
-      {/* --- BẢNG THÔNG BÁO RADAR --- */}
       <div style={{ padding: 18, borderRadius: 12, marginBottom: 24, background: isActuallyOpen ? "#d4f5e9" : "#ffe0e0", border: `2px solid ${isActuallyOpen ? "#00c896" : "#ff4d4f"}` }}>
         <div style={{ fontSize: 13, color: isActuallyOpen ? "#0a6e47" : "#b02020", fontWeight: 700, textTransform: "uppercase" }}>Trạng thái thực tế trên Web Khách lúc này:</div>
         <div style={{ fontSize: 22, fontWeight: 800, color: isActuallyOpen ? "#0a6e47" : "#b02020", marginTop: 4 }}>
@@ -133,7 +143,6 @@ export default function SettingsPage() {
             <div style={{ fontSize: 13, marginTop: 8, color: "#b02020", fontWeight: 600 }}>* Lý do: Quán đang tắt công tắc trạng thái bên dưới.</div>
         )}
       </div>
-      {/* --------------------------- */}
 
       <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8ecf2", padding: 32, boxShadow: "0 4px 20px rgba(0,0,0,0.05)" }}>
         <form style={{ display: "flex", flexDirection: "column", gap: 20 }}>
@@ -156,6 +165,27 @@ export default function SettingsPage() {
             <label style={{ fontWeight: 700, fontSize: 14, color: "#1a202c" }}>Lời giới thiệu / Tagline</label>
             <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Ngon · Nhanh · Tận nơi 🚀" style={{ padding: "12px 16px", borderRadius: 8, border: "1px solid #c3cfe0", minHeight: 60, fontFamily: "inherit" }} />
           </div>
+
+          {/* --- 4. GIAO DIỆN NHẬP LINK QR VÀ XEM TRƯỚC --- */}
+          <div style={{ background: "#f8fafc", padding: 16, borderRadius: 12, border: "1px dashed #cbd5e1" }}>
+            <label style={{ fontWeight: 700, fontSize: 14, color: "#1a202c", display: "block", marginBottom: 8 }}>Mã QR Thanh Toán (Chuyển khoản)</label>
+            <p style={{ fontSize: 12, color: "#64748b", marginBottom: 12 }}>Upload ảnh mã QR của bạn lên Postimages.org rồi copy "Liên kết trực tiếp" (.jpg/.png) dán vào đây.</p>
+            <input 
+              type="text" 
+              value={qrImage} 
+              onChange={e => setQrImage(e.target.value)} 
+              placeholder="Ví dụ: https://i.postimg.cc/xxx/momo.jpg"
+              style={{ width: "100%", padding: "12px 16px", borderRadius: 8, border: "1px solid #c3cfe0", marginBottom: 12 }} 
+            />
+            {/* Khung xem trước (Preview) */}
+            {qrImage && (
+              <div style={{ textAlign: "center", padding: 10, background: "#fff", borderRadius: 8, border: "1px solid #e2e8f0" }}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: "#10b981", marginBottom: 8 }}>✅ Hình ảnh hợp lệ (Xem trước):</p>
+                <img src={qrImage} alt="QR Preview" style={{ maxWidth: 150, height: "auto", borderRadius: 8, boxShadow: "0 2px 10px rgba(0,0,0,0.1)" }} />
+              </div>
+            )}
+          </div>
+          {/* ------------------------------------------- */}
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
