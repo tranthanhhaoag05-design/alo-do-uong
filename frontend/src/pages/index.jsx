@@ -458,20 +458,41 @@ function CheckoutPage({ cart, storeData, setPage, setToast, setOrders, isOpen, c
         
         {/* --- HIỂN THỊ MÃ QR NẾU KHÁCH CHỌN CHUYỂN KHOẢN --- */}
         {paymentMethod === "Chuyển khoản" && (
-            <div style={{ marginTop: 20, textAlign: "center", padding: 15, background: "#f8fafc", borderRadius: 12, border: "2px dashed #cbd5e1" }}>
-                <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 10, color: "#1e293b" }}>Vui lòng quét mã QR dưới đây để thanh toán</p>
-                {/* Lấy link ảnh từ API, giả sử tên là qr_image hoặc qr_code */}
-                {storeData.qr_image || storeData.qr_code ? (
-                    <img 
-                      src={storeData.qr_image || storeData.qr_code} 
-                      alt="QR Thanh toán" 
-                      style={{ maxWidth: "100%", maxHeight: 300, borderRadius: 10 }} 
-                    />
-                ) : (
-                    <p style={{ color: "#ef4444", fontSize: 13, fontWeight: 600 }}>Quán chưa cập nhật mã QR. Vui lòng chọn Tiền mặt.</p>
-                )}
+            <div style={{ marginTop: 24, display: "flex", justifyContent: "center" }}>
+                <div style={{ 
+                    padding: 16, 
+                    background: "#f8fafc", 
+                    borderRadius: 16, 
+                    border: "2px dashed #cbd5e1", 
+                    display: "flex", 
+                    flexDirection: "column", 
+                    alignItems: "center", 
+                    maxWidth: "100%" 
+                }}>
+                    <p style={{ fontSize: 15, fontWeight: 700, marginBottom: 16, color: "#1e293b", textAlign: "center" }}>
+                        Vui lòng quét mã QR dưới đây để thanh toán
+                    </p>
+                    {/* Lấy link ảnh từ API, giả sử tên là qr_image hoặc qr_code */}
+                    {storeData.qr_image || storeData.qr_code ? (
+                        <img 
+                          src={storeData.qr_image || storeData.qr_code} 
+                          alt="QR Thanh toán" 
+                          style={{ 
+                              width: "100%", 
+                              maxWidth: "340px", /* Phóng to hết cỡ cho dễ quét trên điện thoại */
+                              height: "auto",    /* Chiều cao tự động giãn theo ảnh MoMo */
+                              borderRadius: 12, 
+                              objectFit: "contain",
+                              boxShadow: "0 4px 15px rgba(0,0,0,0.08)" /* Thêm tí đổ bóng cho sang trọng */
+                          }} 
+                        />
+                    ) : (
+                        <p style={{ color: "#ef4444", fontSize: 13, fontWeight: 600 }}>Quán chưa cập nhật mã QR. Vui lòng chọn Tiền mặt.</p>
+                    )}
+                </div>
             </div>
         )}
+        {/* ------------------------------------------- */}
       </div>
 
       {/* --- BILL PREVIEW (BẢN NHÁP HÓA ĐƠN TRỰC QUAN CHO KHÁCH XEM) --- */}
