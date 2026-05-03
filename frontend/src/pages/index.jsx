@@ -44,7 +44,7 @@ function StorePicker({ onSelect }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("https://alo-do-uong.onrender.com/api/stores/?_t=" + Date.now())
+    fetch(`${API_URL}/stores/?_t=${Date.now()}`)
       .then(r => r.json()).then(data => { setStores(data); setLoading(false); }).catch(() => setLoading(false));
   }, []);
 
@@ -81,10 +81,10 @@ function HomePage({ cart, setCart, setToast, setPage, storeData, isOpen, onChang
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`https://alo-do-uong.onrender.com/api/categories/?store=${storeData.id}&_t=${Date.now()}`)
+    fetch(`${API_URL}/categories/?store=${storeData.id}&_t=${Date.now()}`)
       .then(r => r.json()).then(data => setCategories(data)).catch(e => console.error(e));
 
-    fetch(`https://alo-do-uong.onrender.com/api/products/?store=${storeData.id}&active=true&_t=${Date.now()}`)
+    fetch(`${API_URL}/products/?store=${storeData.id}&active=true&_t=${Date.now()}`)
       .then(r => r.json()).then(data => { setProducts(data); setLoading(false); }).catch(() => setLoading(false));
   }, [storeData]);
 
@@ -467,52 +467,63 @@ export default function App() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isSyncing, setIsSyncing] = useState(false);
 
+  // --- SỬA LỖI 1: CHỈ CHẠY 1 LẦN DUY NHẤT KHI VÀO WEB ---
   useEffect(() => {
-    const savedO = JSON.parse(localStorage.getItem("alo_orders") || "[]");
-    setOrders(savedO);
-    if (page === "history") syncOrders(savedO);
-    // Luôn bắt đầu bằng việc chọn cửa hàng mới để đảm bảo đúng quy trình bạn yêu cầu
     localStorage.removeItem("selected_store_id");
     setStoreData(null);
+    
+    const savedO = JSON.parse(localStorage.getItem("alo_orders") || "[]");
+    setOrders(savedO);
     
     setTimeout(() => setShowSplash(false), 2000);
     
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    
-    // Tự động đồng bộ trạng thái đơn hàng mỗi 10 giây khi đang ở trang lịch sử
+    return () => clearInterval(timer);
+  }, []); 
+
+  // --- SỬA LỖI 2: CHẠY RIÊNG CHO TRANG LỊCH SỬ KHI ĐỔI TAB ---
+  useEffect(() => {
     let syncTimer;
     if (page === "history") {
+      const currentO = JSON.parse(localStorage.getItem("alo_orders") || "[]");
+      syncOrders(currentO);
+      
       syncTimer = setInterval(() => {
-        const currentO = JSON.parse(localStorage.getItem("alo_orders") || "[]");
-        syncOrders(currentO);
-      }, 5000); // Tăng tần suất lên 5 giây
+        const latestO = JSON.parse(localStorage.getItem("alo_orders") || "[]");
+        syncOrders(latestO);
+      }, 5000);
     }
-
     return () => {
-      clearInterval(timer);
       if (syncTimer) clearInterval(syncTimer);
     };
-  }, [page]);
+  }, [page]); 
 
   const syncOrders = async (list) => {
     if (!list || list.length === 0) return;
     setIsSyncing(true);
-    const updated = await Promise.all(list.map(async (o) => {
+    
+    const updatedResults = await Promise.all(list.map(async (o) => {
       try {
-        const res = await fetch(`https://alo-do-uong.onrender.com/api/orders/track/${o.order_code}/?_t=${Date.now()}`);
+        const res = await fetch(`${API_URL}/orders/track/${o.order_code}/?_t=${Date.now()}`);
         if (res.ok) {
           const data = await res.json();
           return { ...o, status: data.status };
         } else if (res.status === 404) {
-           console.warn(`Đơn hàng ${o.order_code} không tồn tại trên máy chủ`);
+           // --- SỬA LỖI 3: DỌN SẠCH ĐƠN BỊ XÓA BẰNG CÁCH TRẢ VỀ NULL ---
+           console.warn(`Đơn hàng ${o.order_code} đã bị xóa trên máy chủ, đang dọn dẹp...`);
+           return null; 
         }
       } catch (e) {
         console.error("Lỗi đồng bộ đơn:", o.order_code, e);
       }
       return o;
     }));
-    setOrders(updated);
-    localStorage.setItem("alo_orders", JSON.stringify(updated));
+
+    // Lọc bỏ những đơn hàng bị null ra khỏi bộ nhớ
+    const validOrders = updatedResults.filter(o => o !== null);
+    
+    setOrders(validOrders);
+    localStorage.setItem("alo_orders", JSON.stringify(validOrders));
     setIsSyncing(false);
   };
 
@@ -524,7 +535,6 @@ export default function App() {
 
   const handleToast = (m) => { setToast(m); setTimeout(() => setToast(""), 2500); };
 
-  // --- HÀM ISOPEN ĐÃ ĐƯỢC TỐI ƯU ---
   const isOpen = () => {
     if (!storeData || storeData.is_active === false) return false;
     
@@ -539,14 +549,11 @@ export default function App() {
     const closeMin = (ch || 0) * 60 + (cm || 0);
 
     if (closeMin < openMin) {
-      // Logic mở xuyên đêm (vd: 7h sáng đến 2h đêm hôm sau)
       return cur >= openMin || cur < closeMin; 
     } else {
-      // Logic mở trong ngày - Dùng dấu < để chốt sổ cực kỳ chuẩn xác
       return cur >= openMin && cur < closeMin; 
     }
   };
-  // --------------------------------
 
   if (showSplash) return (
     <div style={{ minHeight: "100vh", background: G, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "white" }}>
