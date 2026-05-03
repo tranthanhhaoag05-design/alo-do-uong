@@ -203,7 +203,6 @@ function HomePage({ cart, setCart, setToast, setPage, storeData, isOpen, onChang
 // ─── CART PAGE ────────────────────────────────────────────────────────────────
 function CartPage({ cart, setCart, setPage, setToast }) {
 
-  const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const updateQty = (id, delta) => setCart(p => p.map(i => {
     if (i.id === id) {
       const newQty = i.qty + delta;
@@ -211,13 +210,10 @@ function CartPage({ cart, setCart, setPage, setToast }) {
         setToast(`⚠️ Món này chỉ còn ${i.stock} suất thôi bạn ơi!`);
         return i;
       }
-
-
       return { ...i, qty: Math.max(0, newQty) };
     }
     return i;
   }).filter(i => i.qty > 0));
-
 
   const activeCart = cart.filter(i => i.selected !== false);
   const totalQty = activeCart.reduce((s, i) => s + i.qty, 0);
@@ -240,7 +236,6 @@ function CartPage({ cart, setCart, setPage, setToast }) {
           <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
             <div style={{ fontWeight: 700, fontSize: 17, color: "#1a1a2e" }}>{i.name}</div>
             <div style={{ color: "var(--accent)", fontWeight: 800, fontSize: 14, marginTop: 4 }}>{fmt(i.price)}</div>
-            {/* Ghi chú sản phẩm */}
             <input
               type="text"
               placeholder="Ghi chú..."
@@ -260,61 +255,34 @@ function CartPage({ cart, setCart, setPage, setToast }) {
           <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", justifyContent: "space-between", gap: 10 }}>
             <div style={{ fontWeight: 800, fontSize: 17, color: "#1a1a2e" }}>{fmt(i.price * i.qty)}</div>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <button
-                onClick={() => updateQty(i.id, -1)}
-                style={{
-                  width: 28, height: 28, borderRadius: 8, border: "1px solid #e2e8f0",
-                  background: "#f8fafc", color: "#1e293b", fontWeight: 800, cursor: "pointer",
-                  display: "flex", alignItems: "center", justifyContent: "center"
-                }}
-              >-</button>
+              <button onClick={() => updateQty(i.id, -1)} style={{ width: 28, height: 28, borderRadius: 8, border: "1px solid #e2e8f0", background: "#f8fafc", color: "#1e293b", fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>-</button>
               <span style={{ fontWeight: 800, fontSize: 15, minWidth: 15, textAlign: "center" }}>{i.qty}</span>
-              <button
-                onClick={() => updateQty(i.id, 1)}
-                style={{
-                  width: 28, height: 28, borderRadius: 8, border: "none",
-                  background: "#00c896", color: "white", fontWeight: 800, cursor: "pointer",
-                  display: "flex", alignItems: "center", justifyContent: "center"
-                }}
-              >+</button>
+              <button onClick={() => updateQty(i.id, 1)} style={{ width: 28, height: 28, borderRadius: 8, border: "none", background: "#00c896", color: "white", fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>+</button>
             </div>
           </div>
-
         </div>
       ))}
       <div style={{ position: "fixed", bottom: 85, left: 0, right: 0, width: "100%", padding: "10px 20px", background: "white", zIndex: 90, borderTop: "1px solid #f0f3f8", display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
-
-        {totalQty < 5 && (
+        {totalQty < MIN_ORDER && (
           <div style={{ color: "#ef4444", fontSize: 13, fontWeight: 700 }}>
-            ⚠️ Bạn cần chọn thêm {5 - totalQty} món nữa để giao hàng!
+            ⚠️ Bạn cần chọn thêm {MIN_ORDER - totalQty} món nữa để giao hàng!
           </div>
         )}
-
         <button
           onClick={() => {
-            if (totalQty < 5) {
-              alert("Bạn cần chọn tối thiểu 5 món để đặt hàng nhé!");
+            if (totalQty < MIN_ORDER) {
+              alert(`Bạn cần chọn tối thiểu ${MIN_ORDER} món để đặt hàng nhé!`);
               return;
             }
             setPage("checkout");
           }}
           className="btn-grad"
-          style={{
-            width: "100%", maxWidth: 500, height: 55, borderRadius: 30, border: "none",
-            display: "flex", alignItems: "center", justifyContent: "space-between",
-            padding: "0 30px", fontSize: 16, fontWeight: 800, color: "white",
-            boxShadow: "0 10px 25px rgba(0,200,150,0.3)", cursor: "pointer",
-            opacity: totalQty < 5 ? 0.6 : 1,
-            filter: totalQty < 5 ? "grayscale(1)" : "none"
-          }}
+          style={{ width: "100%", maxWidth: 500, height: 55, borderRadius: 30, border: "none", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 30px", fontSize: 16, fontWeight: 800, color: "white", boxShadow: "0 10px 25px rgba(0,200,150,0.3)", cursor: "pointer", opacity: totalQty < MIN_ORDER ? 0.6 : 1, filter: totalQty < MIN_ORDER ? "grayscale(1)" : "none" }}
         >
-          <span>{totalQty < 5 ? "CHƯA ĐỦ 5 MÓN" : "ĐẶT HÀNG NGAY"}</span>
+          <span>{totalQty < MIN_ORDER ? "CHƯA ĐỦ ĐIỀU KIỆN" : "ĐẶT HÀNG NGAY"}</span>
           <span style={{ fontSize: 18 }}>{fmt(total)}</span>
         </button>
       </div>
-
-
-
     </div>
   );
 }
@@ -556,23 +524,29 @@ export default function App() {
 
   const handleToast = (m) => { setToast(m); setTimeout(() => setToast(""), 2500); };
 
+  // --- HÀM ISOPEN ĐÃ ĐƯỢC TỐI ƯU ---
   const isOpen = () => {
-    if (!storeData || !storeData.is_active) return false;
+    if (!storeData || storeData.is_active === false) return false;
+    
     const cur = currentTime.getHours() * 60 + currentTime.getMinutes();
-    const [oh, om] = (storeData.opening_time || "07:00").split(":").map(Number);
-    const [ch, cm] = (storeData.closing_time || "22:00").split(":").map(Number);
+    const safeOpen = storeData.opening_time || "07:00";
+    const safeClose = storeData.closing_time || "22:00";
+    
+    const [oh, om] = safeOpen.split(":").map(Number);
+    const [ch, cm] = safeClose.split(":").map(Number);
 
-    const openMin = oh * 60 + om;
-    const closeMin = ch * 60 + cm;
+    const openMin = (oh || 0) * 60 + (om || 0);
+    const closeMin = (ch || 0) * 60 + (cm || 0);
 
     if (closeMin < openMin) {
-      // Mở cửa xuyên đêm (VD: 07:00 đến 02:00 sáng hôm sau)
-      return cur >= openMin || cur <= closeMin;
+      // Logic mở xuyên đêm (vd: 7h sáng đến 2h đêm hôm sau)
+      return cur >= openMin || cur < closeMin; 
     } else {
-      // Mở cửa trong ngày (VD: 07:00 đến 22:00)
-      return cur >= openMin && cur <= closeMin;
+      // Logic mở trong ngày - Dùng dấu < để chốt sổ cực kỳ chuẩn xác
+      return cur >= openMin && cur < closeMin; 
     }
   };
+  // --------------------------------
 
   if (showSplash) return (
     <div style={{ minHeight: "100vh", background: G, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "white" }}>

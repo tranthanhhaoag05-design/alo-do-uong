@@ -15,6 +15,30 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [locLoading, setLocLoading] = useState(false);
 
+  // --- LOGIC ĐỒNG HỒ THỜI GIAN THỰC ---
+  const [currentTime, setCurrentTime] = useState(new Date());
+  
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const isTimeOpen = () => {
+    const cur = currentTime.getHours() * 60 + currentTime.getMinutes();
+    const [oh, om] = (openingTime || "07:00").split(":").map(Number);
+    const [ch, cm] = (closingTime || "22:00").split(":").map(Number);
+    const openMin = (oh || 0) * 60 + (om || 0);
+    const closeMin = (ch || 0) * 60 + (cm || 0);
+    
+    if (closeMin < openMin) {
+        return cur >= openMin || cur < closeMin;
+    }
+    return cur >= openMin && cur < closeMin;
+  };
+
+  const isActuallyOpen = isOpen && isTimeOpen();
+  // -----------------------------------
+
   useEffect(() => {
     const storeId = localStorage.getItem("store_id");
     if (!storeId) {
@@ -23,7 +47,6 @@ export default function SettingsPage() {
       return;
     }
     fetch(`https://alo-do-uong.onrender.com/api/stores/${storeId}/`)
-
       .then(res => res.json())
       .then(data => {
         setName(data.name || "");
@@ -75,9 +98,12 @@ export default function SettingsPage() {
     try {
       const res = await fetch(`https://alo-do-uong.onrender.com/api/stores/${storeId}/`, {
         method: "PUT",
+        headers: {
+            // Chú ý: Cần bổ sung Token xác thực nếu Backend yêu cầu quyền Admin
+            "Authorization": `Token ${localStorage.getItem("admin_token")}`
+        },
         body: formData,
       });
-
 
       if (res.ok) {
         setStoreName(name);
@@ -95,6 +121,23 @@ export default function SettingsPage() {
   return (
     <div style={{ maxWidth: 800, margin: "0 auto" }}>
       <h2 style={{ margin: "0 0 24px", fontSize: 20, fontWeight: 800, color: "#0d1117" }}>Cài đặt Cửa hàng</h2>
+
+      {/* --- BẢNG THÔNG BÁO RADAR --- */}
+      <div style={{ padding: 18, borderRadius: 12, marginBottom: 24, background: isActuallyOpen ? "#d4f5e9" : "#ffe0e0", border: `2px solid ${isActuallyOpen ? "#00c896" : "#ff4d4f"}` }}>
+        <div style={{ fontSize: 13, color: isActuallyOpen ? "#0a6e47" : "#b02020", fontWeight: 700, textTransform: "uppercase" }}>Trạng thái thực tế trên Web Khách lúc này:</div>
+        <div style={{ fontSize: 22, fontWeight: 800, color: isActuallyOpen ? "#0a6e47" : "#b02020", marginTop: 4 }}>
+          {isActuallyOpen ? "🟢 ĐANG MỞ CỬA NHẬN ĐƠN" : "🔴 ĐÃ ĐÓNG CỬA (Không nhận đơn)"}
+        </div>
+        {!isActuallyOpen && isOpen && (
+            <div style={{ fontSize: 13, marginTop: 8, color: "#b02020", fontWeight: 600 }}>
+              * Lý do: Bây giờ là {currentTime.toLocaleTimeString('vi-VN')}, đã ngoài khung giờ hoạt động ({openingTime} - {closingTime}), hệ thống tự động chốt đơn nghỉ dù công tắc bên dưới đang bật.
+            </div>
+        )}
+        {!isActuallyOpen && !isOpen && (
+            <div style={{ fontSize: 13, marginTop: 8, color: "#b02020", fontWeight: 600 }}>* Lý do: Quán đang tắt công tắc trạng thái bên dưới.</div>
+        )}
+      </div>
+      {/* --------------------------- */}
 
       <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8ecf2", padding: 32, boxShadow: "0 4px 20px rgba(0,0,0,0.05)" }}>
         <form style={{ display: "flex", flexDirection: "column", gap: 20 }}>
