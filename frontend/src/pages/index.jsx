@@ -499,7 +499,7 @@ export default function App() {
     setIsSyncing(true);
     const updated = await Promise.all(list.map(async (o) => {
       try {
-        const res = await fetch(`${API_URL}/orders/track/${o.order_code}/?_t=${Date.now()}`);
+        const res = await fetch(`https://alo-do-uong.onrender.com/api/orders/track/${o.order_code}/?_t=${Date.now()}`);
         if (res.ok) {
           const data = await res.json();
           return { ...o, status: data.status };
