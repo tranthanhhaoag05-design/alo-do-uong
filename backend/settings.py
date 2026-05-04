@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     'rest_framework', 
     'rest_framework.authtoken',
     'corsheaders',    
+    'cloudinary',
+    'cloudinary_storage',
 ]
 
 MIDDLEWARE = [
@@ -148,3 +150,12 @@ ALLOWED_HOSTS = ['*']
 # ==========================================
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': 'dra8ok2n4',
+    'API_KEY': '752845882515386',
+    'API_SECRET': 'sxlZUcHlJrqcSB_Vx8mNPwFxs0s',
+}
+
+# Câu lệnh ma thuật ép Django quăng toàn bộ ảnh lên Cloudinary thay vì lưu vào máy
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
