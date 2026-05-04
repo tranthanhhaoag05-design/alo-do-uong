@@ -472,20 +472,65 @@ function CheckoutPage({ cart, storeData, setPage, setToast, setOrders, isOpen, c
                     <p style={{ fontSize: 15, fontWeight: 700, marginBottom: 16, color: "#1e293b", textAlign: "center" }}>
                         Vui lòng quét mã QR dưới đây để thanh toán
                     </p>
-                    {/* Lấy link ảnh từ API, giả sử tên là qr_image hoặc qr_code */}
                     {storeData.qr_image || storeData.qr_code ? (
-                        <img 
-                          src={storeData.qr_image || storeData.qr_code} 
-                          alt="QR Thanh toán" 
-                          style={{ 
-                              width: "100%", 
-                              maxWidth: "340px", /* Phóng to hết cỡ cho dễ quét trên điện thoại */
-                              height: "auto",    /* Chiều cao tự động giãn theo ảnh MoMo */
-                              borderRadius: 12, 
-                              objectFit: "contain",
-                              boxShadow: "0 4px 15px rgba(0,0,0,0.08)" /* Thêm tí đổ bóng cho sang trọng */
-                          }} 
-                        />
+                        <>
+                            <img 
+                              src={storeData.qr_image || storeData.qr_code} 
+                              alt="QR Thanh toán" 
+                              style={{ 
+                                  width: "100%", 
+                                  maxWidth: "340px", 
+                                  height: "auto",    
+                                  borderRadius: 12, 
+                                  objectFit: "contain",
+                                  boxShadow: "0 4px 15px rgba(0,0,0,0.08)" 
+                              }} 
+                            />
+                            
+                            {/* NÚT TẢI ẢNH QR XUỐNG */}
+                            <button
+                                onClick={async (e) => {
+                                    e.preventDefault();
+                                    const imgUrl = storeData.qr_image || storeData.qr_code;
+                                    try {
+                                        // Thử tải thẳng về máy (nếu host ảnh cho phép CORS)
+                                        const response = await fetch(imgUrl);
+                                        const blob = await response.blob();
+                                        const blobUrl = window.URL.createObjectURL(blob);
+                                        const link = document.createElement('a');
+                                        link.href = blobUrl;
+                                        link.download = `QR_ThanhToan_${storeData.name.replace(/\s+/g, '')}.jpg`;
+                                        document.body.appendChild(link);
+                                        link.click();
+                                        document.body.removeChild(link);
+                                        window.URL.revokeObjectURL(blobUrl);
+                                    } catch (err) {
+                                        // Nếu bị trình duyệt chặn, mở ảnh sang tab mới cho khách tự lưu
+                                        window.open(imgUrl, '_blank');
+                                    }
+                                }}
+                                style={{
+                                    marginTop: 18,
+                                    padding: "12px 24px",
+                                    borderRadius: 50,
+                                    border: "none",
+                                    background: "#e2e8f0",
+                                    color: "#1e293b",
+                                    fontWeight: 800,
+                                    fontSize: 14,
+                                    cursor: "pointer",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 8,
+                                    boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
+                                    transition: "all 0.2s"
+                                }}
+                                onMouseDown={(e) => e.currentTarget.style.transform = "scale(0.95)"}
+                                onMouseUp={(e) => e.currentTarget.style.transform = "scale(1)"}
+                            >
+                                <span>📥 Tải mã QR về máy</span>
+                            </button>
+                        </>
                     ) : (
                         <p style={{ color: "#ef4444", fontSize: 13, fontWeight: 600 }}>Quán chưa cập nhật mã QR. Vui lòng chọn Tiền mặt.</p>
                     )}
